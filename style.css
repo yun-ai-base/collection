@@ -909,3 +909,472 @@ mark {
     max-width: 100%;
   }
 }
+
+/* ============================================
+   暗色模式
+   ============================================ */
+[data-theme="dark"] {
+  --bg: #1a1a1e;
+  --surface: #252529;
+  --text: #e4e4e7;
+  --text-secondary: #a0a0a8;
+  --text-muted: #71717a;
+  --border: #333338;
+  --shadow: 0 1px 4px rgba(0,0,0,0.3);
+  --shadow-hover: 0 4px 16px rgba(0,0,0,0.4);
+}
+
+[data-theme="dark"] .search-box input {
+  background: #2a2a2e;
+  border-color: #444;
+  color: #e4e4e7;
+}
+
+[data-theme="dark"] .search-box input:focus {
+  border-color: #888;
+}
+
+[data-theme="dark"] .btn-secondary {
+  background: #333;
+  color: #e4e4e7;
+}
+
+[data-theme="dark"] .card-tag {
+  background: #333;
+  color: #aaa;
+}
+
+[data-theme="dark"] .card-tag:hover {
+  background: #444 !important;
+}
+
+[data-theme="dark"] .cat-btn {
+  background: #333;
+  color: #aaa;
+}
+
+[data-theme="dark"] .cat-btn:hover {
+  background: #444;
+}
+
+[data-theme="dark"] .cat-btn.active {
+  background: #e4e4e7;
+  color: #1a1a1e;
+}
+
+[data-theme="dark"] .sort-select,
+[data-theme="dark"] .sort-order-btn {
+  background: #2a2a2e;
+  border-color: #444;
+  color: #e4e4e7;
+}
+
+[data-theme="dark"] .detail-content {
+  color: #c8c8cc;
+}
+
+[data-theme="dark"] .ai-review {
+  background: #2a2a2e;
+  color: #c8c8cc;
+}
+
+[data-theme="dark"] .ext-item {
+  background: #2a2a2e;
+  color: #6ab0d6;
+}
+
+[data-theme="dark"] .ext-item:hover {
+  background: #333;
+}
+
+[data-theme="dark"] .note-box {
+  background: #2a2a2e;
+  border-color: #444;
+  color: #888;
+}
+
+[data-theme="dark"] .note-box:focus {
+  background: #252529;
+  border-color: #888;
+  color: #e4e4e7;
+}
+
+[data-theme="dark"] .stats-bar {
+  background: #252529;
+}
+
+[data-theme="dark"] .modal-box {
+  background: #252529;
+}
+
+[data-theme="dark"] .modal-btn-cancel {
+  background: #333;
+  color: #e4e4e7;
+}
+
+[data-theme="dark"] .card-starred {
+  background: #2a2818;
+  border-color: #8a7030 !important;
+}
+
+[data-theme="dark"] .card-starred-badge {
+  background: #3a3018;
+}
+
+[data-theme="dark"] .prev-next-btn {
+  background: #252529;
+  border-color: #333;
+  color: #a0a0a8;
+}
+
+[data-theme="dark"] .prev-next-btn:hover {
+  border-color: #888;
+  color: #e4e4e7;
+  background: #2a2a2e;
+}
+
+[data-theme="dark"] .detail-container {
+  background: #252529;
+}
+
+[data-theme="dark"] .font-size-btn {
+  background: #2a2a2e;
+  border-color: #444;
+  color: #aaa;
+}
+
+[data-theme="dark"] .font-size-btn.active {
+  background: #e4e4e7;
+  color: #1a1a1e;
+  border-color: #e4e4e7;
+}
+
+[data-theme="dark"] mark {
+  background: #5a4a00;
+  color: #f0e8c0;
+}
+
+[data-theme="dark"] .add-article-modal textarea,
+[data-theme="dark"] .add-article-modal input,
+[data-theme="dark"] .add-article-modal select {
+  background: #2a2a2e;
+  border-color: #444;
+  color: #e4e4e7;
+}
+
+[data-theme="dark"] .toc-sidebar {
+  background: #252529;
+  border-color: #333;
+}
+
+[data-theme="dark"] .toc-item:hover {
+  background: #333;
+}
+
+[data-theme="dark"] .toc-item.active {
+  background: #3a3a3e;
+  color: #e4e4e7;
+}
+
+/* --- 暗色模式切换按钮 --- */
+.theme-toggle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+  font-family: inherit;
+  flex-shrink: 0;
+}
+
+.theme-toggle:hover {
+  border-color: var(--text);
+}
+
+/* ============================================
+   添加文章弹窗
+   ============================================ */
+.add-article-modal textarea,
+.add-article-modal input,
+.add-article-modal select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #ddd;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color var(--transition);
+  box-sizing: border-box;
+}
+
+.add-article-modal textarea:focus,
+.add-article-modal input:focus,
+.add-article-modal select:focus {
+  border-color: var(--text);
+}
+
+.add-article-modal textarea {
+  min-height: 200px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.add-article-modal .form-group {
+  margin-bottom: 14px;
+}
+
+.add-article-modal .form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: var(--text-secondary);
+}
+
+.add-article-modal .form-row {
+  display: flex;
+  gap: 12px;
+}
+
+.add-article-modal .form-row .form-group {
+  flex: 1;
+}
+
+.add-article-modal .modal-box {
+  width: 600px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.add-article-modal .modal-actions {
+  margin-top: 8px;
+}
+
+/* ============================================
+   文章内搜索
+   ============================================ */
+.article-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  background: #f5f5f0;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+[data-theme="dark"] .article-search-bar {
+  background: #2a2a2e;
+}
+
+.article-search-bar input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  color: var(--text);
+}
+
+.article-search-bar .search-count {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.article-search-bar .search-nav {
+  display: flex;
+  gap: 4px;
+}
+
+.article-search-bar .search-nav-btn {
+  width: 26px;
+  height: 26px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  color: var(--text-secondary);
+  transition: all 0.15s;
+}
+
+[data-theme="dark"] .article-search-bar .search-nav-btn {
+  background: #333;
+  border-color: #444;
+}
+
+.article-search-bar .search-nav-btn:hover {
+  border-color: var(--text);
+  color: var(--text);
+}
+
+.article-search-bar .search-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+/* ============================================
+   目录导航
+   ============================================ */
+.toc-wrapper {
+  position: relative;
+}
+
+.toc-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  transition: all 0.15s;
+}
+
+.toc-toggle-btn:hover {
+  border-color: var(--text);
+  color: var(--text);
+}
+
+.toc-sidebar {
+  position: fixed;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 200px;
+  max-height: 70vh;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  z-index: 100;
+  box-shadow: var(--shadow);
+  font-size: 12px;
+  display: none;
+}
+
+.toc-sidebar.show {
+  display: block;
+}
+
+.toc-item {
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  transition: all 0.15s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+.toc-item:hover {
+  background: #f0f0f0;
+  color: var(--text);
+}
+
+.toc-item.active {
+  background: #f0f0f0;
+  color: var(--text);
+  font-weight: 600;
+}
+
+@media (max-width: 1100px) {
+  .toc-sidebar {
+    display: none !important;
+  }
+  .toc-toggle-btn {
+    display: inline-flex !important;
+  }
+}
+
+/* ============================================
+   可点击的评分星
+   ============================================ */
+.rating-stars {
+  display: inline-flex;
+  gap: 2px;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  user-select: none;
+}
+
+.rating-stars .star {
+  color: #ddd;
+  transition: color 0.15s;
+}
+
+.rating-stars .star.active {
+  color: #f0b400;
+}
+
+.rating-stars:hover .star {
+  color: #f0b400;
+}
+
+.rating-stars .star:hover ~ .star {
+  color: #ddd !important;
+}
+
+[data-theme="dark"] .rating-stars .star {
+  color: #555;
+}
+
+[data-theme="dark"] .rating-stars .star.active {
+  color: #f0b400;
+}
+
+/* ============================================
+   导出/导入按钮
+   ============================================ */
+.toolbar-extras {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.btn-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+  font-family: inherit;
+}
+
+.btn-icon:hover {
+  border-color: var(--text);
+  background: #f5f5f0;
+}
+
+[data-theme="dark"] .btn-icon:hover {
+  background: #333;
+}

@@ -154,12 +154,55 @@ function renderContentWithMD(text) {
       html += '<blockquote>' + renderMarkdown(bqMatch[1]) + '</blockquote>';
       continue;
     }
+    // 表格
+    if (line.startsWith('|')) {
+      if (inList) { html += '</' + listType + '>'; inList = false; listType = null; }
+      var tableHtml = '';
+      var headerRow = parseTableRow(line);
+      i++;
+      // 跳过分隔行 | --- | --- |
+      while (i < lines.length && lines[i].trim().match(/^\|[\s\-:]+\|/)) { i++; }
+      var bodyRows = [];
+      while (i < lines.length) {
+        var nextLine = lines[i].trim();
+        if (!nextLine || !nextLine.startsWith('|')) break;
+        bodyRows.push(parseTableRow(nextLine));
+        i++;
+      }
+      i--;
+      if (headerRow) {
+        tableHtml += '<table><thead><tr>';
+        for (var ti = 0; ti < headerRow.length; ti++) {
+          tableHtml += '<th>' + renderMarkdown(headerRow[ti].trim()) + '</th>';
+        }
+        tableHtml += '</tr></thead><tbody>';
+        for (var ri = 0; ri < bodyRows.length; ri++) {
+          tableHtml += '<tr>';
+          for (var tj = 0; tj < bodyRows[ri].length; tj++) {
+            tableHtml += '<td>' + renderMarkdown(bodyRows[ri][tj].trim()) + '</td>';
+          }
+          tableHtml += '</tr>';
+        }
+        tableHtml += '</tbody></table>';
+      }
+      html += tableHtml;
+      continue;
+    }
     // 普通段落
     if (inList) { html += '</' + listType + '>'; inList = false; listType = null; }
     html += '<p>' + renderMarkdown(line) + '</p>';
   }
   if (inList) { html += '</' + listType + '>'; }
   return html;
+}
+
+function parseTableRow(line) {
+  var t = line.trim();
+  if (t.startsWith('|')) t = t.slice(1);
+  if (t.endsWith('|')) t = t.slice(0, -1);
+  var parts = [];
+  t.split('|').forEach(function(s) { parts.push(s.trim()); });
+  return parts;
 }
 
 // --- 获取 TOC 条目 ---

@@ -86,11 +86,32 @@ function highlightText(text, query) {
 // --- 复制全文 ---
 function copyFullText() {
   if (!state.currentArticle) return;
-  navigator.clipboard.writeText(state.currentArticle.content).then(function () {
+  var text = state.currentArticle.content;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function () {
+      showToast('全文已复制到剪贴板');
+    }).catch(function () {
+      fallbackCopy(text);
+    });
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text) {
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.left = '-9999px';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
     showToast('全文已复制到剪贴板');
-  }).catch(function () {
+  } catch (e) {
     showToast('复制失败，请手动选择复制');
-  });
+  }
+  document.body.removeChild(ta);
 }
 
 // --- 随机一篇 ---
@@ -299,7 +320,7 @@ function getFilteredArticles() {
       return sortOrder === 'asc' ? va.localeCompare(vb, 'zh') : vb.localeCompare(va, 'zh');
     }
     if (sortBy === 'rating') { va = a.rating || 0; vb = b.rating || 0; }
-    if (sortBy === 'readTime') { va = a.readTime || 0; vb = b.readTime || 0; }
+    if (sortBy === 'readTime') { va = a.readTimeMinutes || a.readTime || 0; vb = b.readTimeMinutes || b.readTime || 0; }
     if (sortBy === 'dateAdded') { va = a.dateAdded || ''; vb = b.dateAdded || ''; }
     return sortOrder === 'asc' ? (va > vb ? 1 : -1) : (va < vb ? 1 : -1);
   });
@@ -352,7 +373,7 @@ function renderCard(article) {
   }
   html +=   '</div>';
   html +=   '<div class="card-footer">';
-  html +=     '<span>📌 ' + escapeHtml(article.source) + ' · ' + article.readTime + 'min</span>';
+  html +=     '<span>📌 ' + escapeHtml(article.source) + ' · ' + (article.readTimeMinutes || article.readTime || 0) + 'min</span>';
   html +=     '<span class="' + statusCls + '">● ' + statusLabel + '</span>';
   html +=   '</div>';
   html += '</div>';
@@ -492,7 +513,7 @@ function renderDetail(article) {
   html += '<div class="detail-sub">';
   html +=   '📌 ' + escapeHtml(article.source);
   if (article.author) html += ' · ' + escapeHtml(article.author);
-  html += ' · 收藏于 ' + article.dateAdded + ' · ' + article.readTime + ' 分钟阅读';
+  html += ' · 收藏于 ' + article.dateAdded + ' · ' + (article.readTimeMinutes || article.readTime || 0) + ' 分钟阅读';
   if (article.rating) {
     html += ' · ';
     for (var ri = 0; ri < 5; ri++) {
@@ -602,9 +623,11 @@ function toggleStatus(id) {
   showToast('状态已更新');
 }
 
+var searchTimer;
 function handleSearch(e) {
   state.searchQuery = e.target.value;
-  renderHome();
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(function () { renderHome(); }, 300);
 }
 
 window.addEventListener('popstate', function (e) {

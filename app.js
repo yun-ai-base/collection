@@ -41,6 +41,10 @@ var state = {
   currentView: 'home',
   currentArticle: null,
   theme: 'light',
+  currentTab: 'home',
+  viewMode: 'grid',
+  selectMode: false,
+  selectedIds: [],
   articleSearchQuery: '',
   articleSearchResults: [],
   articleSearchCurrent: -1,
@@ -283,6 +287,7 @@ function saveLocalArticles() {
 
 function saveOverrides() {
   var map = {};
+  var existing = loadOverrides();
   state.articles.forEach(function (a) {
     if (a._local) return;
     var now = new Date().toISOString().slice(0, 10);
@@ -292,6 +297,7 @@ function saveOverrides() {
     if (a.starred) ov.starred = true;
     if (a.rating) ov.rating = a.rating;
     if (a.updatedAt !== now) ov.updatedAt = now;
+    if (existing[a.id] && existing[a.id].category) ov.category = existing[a.id].category;
     if (Object.keys(ov).length) map[a.id] = ov;
   });
   localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
@@ -308,6 +314,7 @@ function applyOverrides(articles) {
       if (ov.status !== undefined) a.status = ov.status;
       if (ov.starred !== undefined) a.starred = ov.starred;
       if (ov.rating !== undefined) a.rating = ov.rating;
+      if (ov.category !== undefined) a.category = ov.category;
       if (ov.updatedAt) a.updatedAt = ov.updatedAt;
     }
   });
@@ -542,6 +549,11 @@ function renderHome() {
   html +=       '<select class="sort-select" id="sortSelect"></select>';
   html +=       '<button class="sort-order-btn" id="sortOrderBtn">' + (state.sortOrder === 'desc' ? '↓' : '↑') + '</button>';
   html +=     '</div>';
+  html +=     '<div class="view-toggle">';
+  html +=       '<button class="' + (state.viewMode === 'grid' ? 'active' : '') + '" onclick="state.viewMode=\'grid\';renderHome()" title="网格">▦</button>';
+  html +=       '<button class="' + (state.viewMode === 'list' ? 'active' : '') + '" onclick="state.viewMode=\'list\';renderHome()" title="列表">☰</button>';
+  html +=     '</div>';
+  html +=     '<button class="btn-icon' + (state.selectMode ? ' active' : '') + '" onclick="toggleSelectMode()" title="选择" style="' + (state.selectMode ? 'background:var(--text);color:white;border-color:var(--text)' : '') + '">☐</button>';
   html +=     '<div class="toolbar-extras">';
   html +=       '<button class="btn-icon" onclick="exportBackup()" title="导出备份">📦</button>';
   html +=       '<button class="btn-icon" onclick="document.getElementById(\'importInput\').click()" title="导入备份">📥</button>';
@@ -556,14 +568,23 @@ function renderHome() {
     html += '<div class="empty-state"><div class="icon">📭</div><h3>暂无内容</h3><p style="margin-top:8px;color:#999">还没有收藏任何文章</p></div>';
   } else {
     var gridHtml = '';
+    var renderFn = state.viewMode === 'grid' ? renderCard : renderCardListItem;
     for (var i = 0; i < articles.length; i++) {
-      gridHtml += renderCard(articles[i]);
+      gridHtml += renderFn(articles[i]);
     }
-    html += '<div class="card-grid">' + gridHtml + '</div>';
+    var containerClass = state.viewMode === 'grid' ? 'card-grid' : 'card-list';
+    html += '<div class="' + containerClass + '">' + gridHtml + '</div>';
+    if (state.selectMode) {
+      html += '<div style="margin-bottom:60px"></div>';
+    }
   }
   html += '</div>';
 
   html += '<div class="stats-bar" id="statsBar"></div>';
+
+  if (state.selectMode) {
+    html += renderBatchBar();
+  }
 
   app.innerHTML = html;
   renderCategoryNav();
@@ -571,6 +592,7 @@ function renderHome() {
   renderStats();
   bindCardClicks();
   bindTagClicks();
+  if (state.viewMode === 'list') bindListCardClicks();
 
   // 恢复滚动位置
   var savedScroll = sessionStorage.getItem('home-scroll');
@@ -660,8 +682,16 @@ function renderCard(article) {
   var starredCls = article.starred ? ' card-starred' : '';
   var localTag = article._local ? ' 📝' : '';
 
+  var selectedCls = state.selectMode && state.selectedIds.indexOf(article.id) !== -1 ? ' card-selected' : '';
+  var selectHtml = '';
+  if (state.selectMode) {
+    var checked = state.selectedIds.indexOf(article.id) !== -1;
+    selectHtml = '<div class="card-checkbox' + (checked ? ' checked' : '') + '" onclick="event.stopPropagation();toggleSelectArticle(\'' + article.id + '\')">' + (checked ? '✓' : '') + '</div>';
+  }
+
   var html = '';
-  html += '<div class="card' + starredCls + '" data-id="' + article.id + '">';
+  html += '<div class="card' + starredCls + selectedCls + '" data-id="' + article.id + '">';
+  html += selectHtml;
   html +=   '<div class="card-header">';
   html +=     '<span class="card-badge" style="background:' + catStyle.bg + ';color:' + catStyle.color + '">' + escapeHtml(article.category) + '</span>';
   html +=     '<span class="card-date">' + article.dateAdded + (article._local ? ' (本地)' : '') + '</span>';
@@ -689,7 +719,11 @@ function bindCardClicks() {
   for (var i = 0; i < cards.length; i++) {
     (function (card) {
       card.addEventListener('click', function (e) {
-        if (e.target.closest('.card-tag')) return;
+        if (e.target.closest('.card-tag') || e.target.closest('.card-checkbox')) return;
+        if (state.selectMode) {
+          toggleSelectArticle(card.dataset.id);
+          return;
+        }
         var article = state.articles.find(function (a) { return a.id === card.dataset.id; });
         if (article) {
           sessionStorage.setItem('home-scroll', window.scrollY);
@@ -735,6 +769,447 @@ function renderStats() {
     '<span><strong>' + starred + '</strong> 篇精读</span>' +
     '<span><strong>' + cats.size + '</strong> 个分类</span>' +
     '<span><strong>' + tags.size + '</strong> 个标签</span>';
+}
+
+// ============================================================
+//   新功能：导航切换 / 统计看板 / 标签云 / 归档 / 列表视图 / 批量操作
+// ============================================================
+
+function switchTab(tab) {
+  state.currentTab = tab;
+  state.selectMode = false;
+  state.selectedIds = [];
+
+  var tabs = document.querySelectorAll('.nav-tab');
+  for (var i = 0; i < tabs.length; i++) {
+    tabs[i].classList.toggle('active', tabs[i].dataset.tab === tab);
+  }
+
+  if (tab === 'home') { renderHome(); return; }
+  if (tab === 'dashboard') { renderDashboard(); return; }
+  if (tab === 'tagcloud') { renderTagCloud(); return; }
+  if (tab === 'archive') { renderArchive(); return; }
+}
+
+// --- 统计看板 ---
+function renderDashboard() {
+  state.currentView = 'home';
+  state.currentArticle = null;
+  document.title = '统计 - 收藏库';
+
+  var articles = state.articles;
+  var total = articles.length;
+  var unread = 0, read = 0, starred = 0;
+  for (var i = 0; i < articles.length; i++) {
+    var a = articles[i];
+    if (a.starred) starred++;
+    else if (a.status === 'read') read++;
+    else unread++;
+  }
+
+  // 分类统计
+  var catCounts = {};
+  for (var ci = 0; ci < articles.length; ci++) {
+    var c = articles[ci].category;
+    catCounts[c] = (catCounts[c] || 0) + 1;
+  }
+  var catKeys = Object.keys(catCounts);
+  var maxCat = 1;
+  for (var ck = 0; ck < catKeys.length; ck++) {
+    if (catCounts[catKeys[ck]] > maxCat) maxCat = catCounts[catKeys[ck]];
+  }
+
+  // 月度统计
+  var monthly = {};
+  for (var mi = 0; mi < articles.length; mi++) {
+    var ym = articles[mi].dateAdded.slice(0, 7);
+    monthly[ym] = (monthly[ym] || 0) + 1;
+  }
+  var months = Object.keys(monthly).sort();
+  var maxMonth = 1;
+  for (var mk = 0; mk < months.length; mk++) {
+    if (monthly[months[mk]] > maxMonth) maxMonth = monthly[months[mk]];
+  }
+
+  // 标签统计
+  var tagCounts = {};
+  for (var ti = 0; ti < articles.length; ti++) {
+    var tags = articles[ti].tags;
+    for (var tj = 0; tj < tags.length; tj++) {
+      tagCounts[tags[tj]] = (tagCounts[tags[tj]] || 0) + 1;
+    }
+  }
+  var sortedTags = Object.keys(tagCounts).sort(function (a, b) {
+    return tagCounts[b] - tagCounts[a];
+  });
+
+  var html = '';
+  html += '<div class="dashboard-page">';
+
+  // 概览卡片
+  html += '<div class="dash-grid">';
+  html +=   '<div class="dash-stat-card"><div class="num">' + total + '</div><div class="label">总收藏</div></div>';
+  html +=   '<div class="dash-stat-card"><div class="num">' + unread + '</div><div class="label">未读</div></div>';
+  html +=   '<div class="dash-stat-card"><div class="num">' + read + '</div><div class="label">已读</div></div>';
+  html +=   '<div class="dash-stat-card"><div class="num">' + starred + '</div><div class="label">精读</div></div>';
+  html += '</div>';
+
+  // 分类分布
+  html += '<div class="dash-section">';
+  html +=   '<div class="dash-section-title">📂 分类分布</div>';
+  html +=   '<div class="bar-chart">';
+  for (var bci = 0; bci < catKeys.length; bci++) {
+    var cat = catKeys[bci];
+    var pct = (catCounts[cat] / maxCat * 100).toFixed(0);
+    var catStyle = CATEGORY_STYLES[cat] || { color: '#666', bg: '#eee' };
+    html += '<div class="bar-row">';
+    html +=   '<span class="bar-label">' + escapeHtml(cat) + '</span>';
+    html +=   '<div class="bar-track"><div class="bar-fill" style="width:' + pct + '%;background:' + catStyle.color + '"></div></div>';
+    html +=   '<span class="bar-value">' + catCounts[cat] + '</span>';
+    html += '</div>';
+  }
+  html +=   '</div>';
+  html += '</div>';
+
+  // 月度趋势
+  html += '<div class="dash-section">';
+  html +=   '<div class="dash-section-title">📈 月度趋势</div>';
+  html +=   '<div class="bar-chart">';
+  for (var bmi = 0; bmi < months.length; bmi++) {
+    var m = months[bmi];
+    var mpct = (monthly[m] / maxMonth * 100).toFixed(0);
+    html += '<div class="bar-row">';
+    html +=   '<span class="bar-label">' + m + '</span>';
+    html +=   '<div class="bar-track"><div class="bar-fill" style="width:' + mpct + '%;background:var(--text)"></div></div>';
+    html +=   '<span class="bar-value">' + monthly[m] + '</span>';
+    html += '</div>';
+  }
+  html +=   '</div>';
+  html += '</div>';
+
+  // 标签云预览
+  html += '<div class="dash-section">';
+  html +=   '<div class="dash-section-title">🏷️ 标签分布</div>';
+  html +=   '<div class="dash-tag-cloud">';
+  for (var sti = 0; sti < Math.min(sortedTags.length, 30); sti++) {
+    var tag = sortedTags[sti];
+    var size = Math.max(12, Math.min(22, 12 + tagCounts[tag] * 3));
+    html += '<span class="dash-tag-item" style="font-size:' + size + 'px" data-tag="' + escapeHtml(tag) + '">#' + escapeHtml(tag) + '</span>';
+  }
+  html +=   '</div>';
+  html += '</div>';
+
+  html += '</div>';
+
+  $('#app').innerHTML = html;
+
+  // 绑定标签点击
+  var tagEls = document.querySelectorAll('.dash-tag-item');
+  for (var te = 0; te < tagEls.length; te++) {
+    (function (el) {
+      el.addEventListener('click', function () {
+        state.filterCategory = '全部';
+        state.searchQuery = el.dataset.tag;
+        var input = document.getElementById('searchInput');
+        if (input) input.value = el.dataset.tag;
+        switchTab('home');
+      });
+    })(tagEls[te]);
+  }
+}
+
+// --- 标签云页面 ---
+function renderTagCloud() {
+  state.currentView = 'home';
+  state.currentArticle = null;
+  document.title = '标签云 - 收藏库';
+
+  var tagCounts = {};
+  for (var i = 0; i < state.articles.length; i++) {
+    var tags = state.articles[i].tags;
+    for (var j = 0; j < tags.length; j++) {
+      tagCounts[tags[j]] = (tagCounts[tags[j]] || 0) + 1;
+    }
+  }
+
+  var sorted = Object.keys(tagCounts).sort(function (a, b) {
+    return tagCounts[b] - tagCounts[a];
+  });
+
+  var minC = 999, maxC = 0;
+  for (var si = 0; si < sorted.length; si++) {
+    var c = tagCounts[sorted[si]];
+    if (c < minC) minC = c;
+    if (c > maxC) maxC = c;
+  }
+  var range = maxC - minC || 1;
+
+  $('#app').innerHTML = '<div class="tag-cloud-page"><h3 style="margin:10px 0 4px;font-weight:600">🏷️ 标签云</h3>' +
+    '<p style="font-size:13px;color:var(--text-muted);margin-bottom:10px">共 ' + sorted.length + ' 个标签 · 点击标签筛选文章</p>' +
+    '<div class="tag-cloud-wrap" id="tagCloudWrap"></div></div>';
+
+  var wrap = document.getElementById('tagCloudWrap');
+  for (var ti = 0; ti < sorted.length; ti++) {
+    var tag = sorted[ti];
+    var size = 12 + (tagCounts[tag] - minC) / range * 18;
+    var opacity = 0.5 + (tagCounts[tag] - minC) / range * 0.5;
+    var el = document.createElement('span');
+    el.className = 'tag-cloud-item';
+    el.style.fontSize = size + 'px';
+    el.style.opacity = opacity;
+    el.textContent = '#' + tag;
+    el.dataset.tag = tag;
+    (function (t) {
+      el.addEventListener('click', function () {
+        state.filterCategory = '全部';
+        state.searchQuery = t;
+        var input = document.getElementById('searchInput');
+        if (input) input.value = t;
+        switchTab('home');
+      });
+    })(tag);
+    wrap.appendChild(el);
+  }
+}
+
+// --- 归档页面 ---
+function renderArchive() {
+  state.currentView = 'home';
+  state.currentArticle = null;
+  document.title = '归档 - 收藏库';
+
+  // 按年月分组
+  var groups = {};
+  for (var i = 0; i < state.articles.length; i++) {
+    var a = state.articles[i];
+    var ym = a.dateAdded.slice(0, 7);
+    if (!groups[ym]) groups[ym] = [];
+    groups[ym].push(a);
+  }
+  var sortedMonths = Object.keys(groups).sort().reverse();
+
+  var html = '<div class="archive-page">';
+  html += '<h3 style="margin:4px 0 16px;font-weight:600">📅 文章归档</h3>';
+
+  for (var mi = 0; mi < sortedMonths.length; mi++) {
+    var ym = sortedMonths[mi];
+    var arts = groups[ym];
+    var monthLabel = ym;
+    html += '<div class="archive-month">';
+    html +=   '<div class="archive-month-title" onclick="this.classList.toggle(\'collapsed\');var n=this.nextElementSibling;if(n)n.style.display=n.style.display===\'none\'?\'\':\'none\'">';
+    html +=     '<span class="arrow">▼</span>';
+    html +=     '<span>' + monthLabel + '</span>';
+    html +=     '<span class="count">(' + arts.length + ' 篇)</span>';
+    html +=   '</div>';
+    html +=   '<div class="archive-list">';
+    for (var aj = 0; aj < arts.length; aj++) {
+      var art = arts[aj];
+      var cs = CATEGORY_STYLES[art.category] || { color: '#666', bg: '#eee' };
+      html += '<div class="archive-article-item" data-id="' + art.id + '">';
+      html +=   '<span class="aa-date">' + art.dateAdded.slice(5) + '</span>';
+      html +=   '<span class="aa-cat" style="background:' + cs.bg + ';color:' + cs.color + '">' + escapeHtml(art.category) + '</span>';
+      html +=   '<span class="aa-title">' + escapeHtml(art.title) + '</span>';
+      html += '</div>';
+    }
+    html +=   '</div>';
+    html += '</div>';
+  }
+
+  html += '</div>';
+  $('#app').innerHTML = html;
+
+  // 绑定归档文章点击
+  var items = document.querySelectorAll('.archive-article-item');
+  for (var ai = 0; ai < items.length; ai++) {
+    (function (el) {
+      el.addEventListener('click', function () {
+        var a = state.articles.find(function (x) { return x.id === el.dataset.id; });
+        if (a) renderDetail(a);
+      });
+    })(items[ai]);
+  }
+}
+
+// --- 列表视图卡片 ---
+function renderCardListItem(article) {
+  var catStyle = CATEGORY_STYLES[article.category] || { color: '#666', bg: '#eee' };
+  var statusIcon = article.starred ? '★' : (article.status === 'read' ? '✓' : '○');
+  var q = state.searchQuery.trim();
+
+  var selectHtml = '';
+  if (state.selectMode) {
+    var checked = state.selectedIds.indexOf(article.id) !== -1;
+    selectHtml = '<div class="card-checkbox' + (checked ? ' checked' : '') + '" onclick="event.stopPropagation();toggleSelectArticle(\'' + article.id + '\')">' + (checked ? '✓' : '') + '</div>';
+  }
+
+  var html = '';
+  html += '<div class="card-list-item' + (state.selectMode && state.selectedIds.indexOf(article.id) !== -1 ? ' card-selected' : '') + '" data-id="' + article.id + '">';
+  html += selectHtml;
+  html +=   '<span class="list-cat" style="background:' + catStyle.bg + ';color:' + catStyle.color + '">' + escapeHtml(article.category) + '</span>';
+  html +=   '<span class="list-title">' + highlightText(article.title, q) + '</span>';
+  html +=   '<span class="list-meta">';
+  html +=     '<span>' + statusIcon + '</span>';
+  html +=     '<span>' + article.dateAdded + '</span>';
+  html +=   '</span>';
+  html += '</div>';
+  return html;
+}
+
+function bindListCardClicks() {
+  var items = document.querySelectorAll('.card-list-item');
+  for (var i = 0; i < items.length; i++) {
+    (function (item) {
+      item.addEventListener('click', function (e) {
+        if (e.target.closest('.card-checkbox')) return;
+        if (state.selectMode) {
+          toggleSelectArticle(item.dataset.id);
+          return;
+        }
+        var a = state.articles.find(function (x) { return x.id === item.dataset.id; });
+        if (a) {
+          sessionStorage.setItem('home-scroll', window.scrollY);
+          renderDetail(a);
+        }
+      });
+    })(items[i]);
+  }
+}
+
+// --- 批量操作 ---
+function toggleSelectMode() {
+  state.selectMode = !state.selectMode;
+  if (!state.selectMode) state.selectedIds = [];
+  renderHome();
+}
+
+function toggleSelectArticle(id) {
+  var idx = state.selectedIds.indexOf(id);
+  if (idx === -1) {
+    state.selectedIds.push(id);
+  } else {
+    state.selectedIds.splice(idx, 1);
+  }
+  // 更新当前视图的选中状态（局部刷新更流畅）
+  var card = document.querySelector('.card[data-id="' + id + '"], .card-list-item[data-id="' + id + '"]');
+  if (card) {
+    var cb = card.querySelector('.card-checkbox');
+    var isSelected = state.selectedIds.indexOf(id) !== -1;
+    if (isSelected) {
+      card.classList.add('card-selected');
+      if (cb) { cb.classList.add('checked'); cb.textContent = '✓'; }
+    } else {
+      card.classList.remove('card-selected');
+      if (cb) { cb.classList.remove('checked'); cb.textContent = ''; }
+    }
+  }
+  // 更新batch bar
+  var countEl = document.querySelector('.batch-count');
+  if (countEl) countEl.textContent = '已选 ' + state.selectedIds.length + ' 篇';
+  var allCheckbox = document.querySelector('.batch-bar input[type="checkbox"]');
+  if (allCheckbox) {
+    allCheckbox.checked = state.selectedIds.length === state.articles.length;
+  }
+}
+
+function selectAllArticles() {
+  var list = getFilteredArticles();
+  state.selectedIds = [];
+  for (var i = 0; i < list.length; i++) {
+    state.selectedIds.push(list[i].id);
+  }
+  renderHome();
+}
+
+function deselectAllArticles() {
+  state.selectedIds = [];
+  renderHome();
+}
+
+function batchMarkRead() {
+  var ids = state.selectedIds;
+  if (!ids.length) { showToast('请先选择文章'); return; }
+  for (var i = 0; i < state.articles.length; i++) {
+    var a = state.articles[i];
+    if (ids.indexOf(a.id) !== -1) {
+      a.status = 'read';
+      a.starred = false;
+    }
+  }
+  saveOverrides();
+  state.selectMode = false;
+  state.selectedIds = [];
+  showToast('已标记 ' + ids.length + ' 篇文章为已读');
+  renderHome();
+}
+
+function batchDeleteArticles() {
+  var ids = state.selectedIds;
+  if (!ids.length) { showToast('请先选择文章'); return; }
+  showConfirmModal('确定删除选中的 ' + ids.length + ' 篇文章吗？', function () {
+    var deleted = loadDeleted();
+    var toDelete = new Set(ids);
+    for (var i = 0; i < ids.length; i++) {
+      if (deleted.indexOf(ids[i]) === -1) deleted.push(ids[i]);
+    }
+    state.articles = state.articles.filter(function (a) { return !toDelete.has(a.id); });
+    localStorage.setItem(DELETED_KEY, JSON.stringify(deleted));
+    state.selectMode = false;
+    state.selectedIds = [];
+    showToast('已删除 ' + ids.length + ' 篇文章');
+    renderHome();
+  });
+}
+
+function batchChangeCategory(category) {
+  if (!category) return;
+  var ids = state.selectedIds;
+  if (!ids.length) { showToast('请先选择文章'); return; }
+
+  // 对本地文章直接改，对 data.json 文章用 override
+  var overrides = loadOverrides();
+  for (var i = 0; i < ids.length; i++) {
+    var a = state.articles.find(function (x) { return x.id === ids[i]; });
+    if (!a) continue;
+    if (a._local) {
+      a.category = category;
+    } else {
+      if (!overrides[a.id]) overrides[a.id] = {};
+      overrides[a.id].category = category;
+    }
+    a.category = category;
+  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(overrides));
+  saveLocalArticles();
+
+  document.getElementById('batchCategorySelect').value = '';
+  state.selectMode = false;
+  state.selectedIds = [];
+  showToast('分类已更新');
+  renderHome();
+}
+
+function renderBatchBar() {
+  var allSelected = state.selectedIds.length === getFilteredArticles().length;
+  var catOpts = '';
+  var cats = Object.keys(CATEGORY_STYLES);
+  for (var ci = 0; ci < cats.length; ci++) {
+    catOpts += '<option value="' + cats[ci] + '">' + cats[ci] + '</option>';
+  }
+
+  var html = '';
+  html += '<div class="batch-bar">';
+  html +=   '<label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;color:var(--text-secondary);user-select:none">';
+  html +=     '<input type="checkbox" ' + (allSelected ? 'checked' : '') + ' onchange="this.checked?selectAllArticles():deselectAllArticles()"> 全选';
+  html +=   '</label>';
+  html +=   '<button class="btn btn-secondary" onclick="batchMarkRead()" style="font-size:13px;padding:6px 14px">✓ 标记已读</button>';
+  html +=   '<select id="batchCategorySelect" onchange="batchChangeCategory(this.value)">';
+  html +=     '<option value="">移动分类…</option>';
+  html +=     catOpts;
+  html +=   '</select>';
+  html +=   '<button class="btn btn-danger" onclick="batchDeleteArticles()" style="font-size:13px;padding:6px 14px">🗑 删除</button>';
+  html +=   '<span class="batch-count">已选 ' + state.selectedIds.length + ' 篇</span>';
+  html += '</div>';
+  return html;
 }
 
 // --- 阅读进度条 ---
@@ -1056,7 +1531,7 @@ function renderDetail(article) {
   }
 
   // 返回
-  $('#backBtn').addEventListener('click', function () { renderHome(); });
+  $('#backBtn').addEventListener('click', function () { switchTab('home'); });
 
   // 上下篇
   var pn = document.getElementById('prevNext');
@@ -1236,7 +1711,7 @@ window.addEventListener('popstate', function (e) {
     var a = state.articles.find(function (x) { return x.id === e.state.id; });
     if (a) { renderDetail(a); return; }
   }
-  renderHome();
+  switchTab('home');
 });
 
 // --- 滚动 ---

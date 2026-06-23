@@ -1,6 +1,35 @@
 {
   "articles": [
     {
+      "id": "a-1782156800000",
+      "title": "哥德尔：一个自由而无用的灵魂 ｜书评",
+      "author": "张峥",
+      "url": "https://mp.weixin.qq.com/s/k9tNj39VsfzjoHGNjZe0mA",
+      "content": "库尔特·哥德尔（1906-1978）的理论为计算机科学和人工智能的发展奠定了基础。\n\n哥德尔被爱因斯坦称为亚里士多德之后最伟大的逻辑学家。他提出的哥德尔不完备性定理，堪称数学逻辑理论中最伟大的发现，撼动了当时被大数学家希尔伯特认为完美的数学王国。\n\n哥德尔1906年4月28日出生于当时隶属于奥匈帝国的布尔诺，1923年进入维也纳大学，原本要学习物理，在参加过几次数论的讲座后转向数学，并参加了以哲学家为主、专注于讨论语言和意义及逻辑关系的维也纳小组。1930年，24岁的哥德尔获博士学位，后在维也纳大学工作。\n\n因欧洲战乱，身为犹太人的哥德尔的国籍几经变换。二战前逃离欧洲，1940年来到美国，在普林斯顿高等研究院工作。晚年因迫害妄想症拒绝进食，1978年离世。\n\n作为计算机学家，张峥欣赏哥德尔在数学和逻辑学上的成就和独特趣味，也在思考人才为何聚集到美国。如何让学者同时安放自己的心灵和书桌，这是一个值得探究的问题。\n\n关于哥德尔不完备性定理\n\n希尔伯特认为数学是\"完备而且自洽\"的——所有结果都可以从一堆不会互相矛盾的公理中严格推导出来。1929年，23岁的哥德尔在一阶逻辑上取得了突破性进展。但半年后，他证明了希尔伯特猜想不成立——无法同时保证数学系统的自洽性和完备性。\n\n哥德尔不完备性定理被分成两大步骤。首先，哥德尔通过一串基于素数的操作将任何数学公式变成独一无二的\"哥德尔数\"。接着，他构造了一个自我矛盾的数学定理：\"哥德尔数为g的表达式是不可证明的\"，这就像无法判断\"这句话是假的\"的真伪一样。\n\n这个定理宣告了在数学系统中永远存在可能为真的命题，却无法用数学自己来证明（更严格地说，是在整数系统中用有限步证明）。\n\n哥德尔不完备性定理的影响远远超出了数学本身。在计算机领域，有一个对应的经典问题叫做\"停机问题\"：在有限的时间内能否判断一个任意的程序结束运行或者死循环。图灵证明了这个问题，使用的证明框架类似，也是自我指涉带来的悖论。\n\n为什么了解哥德尔\n\n作者是第二代复旦人，反思\"自由而无用的灵魂\"这句话。知道了不知道，才能划清学问的边界，而只有知道了边界，才能继续推远边界，这正是哥德尔身后一直在发生的事。因此，这种无用是非常深刻的有用。\n\n当年的维也纳学术圈对爱思考的人来说是令人神往的天堂，影响二十世纪的很多思潮和流派都发端于这些小圈子中。但奥匈帝国正在滑向地狱，学术天堂悬浮在地狱之门边缘。\n\n这抛出了一个尖锐的问题：在公共危机中，如果知识分子不能安放自己的心灵，又如何安放自己的书桌？\n\n作者认为没有理由对知识分子持有更高的道德期待。聪明人更有能力说服自己投靠黑暗。压力之下，嘴脸才显。\n\n人才是如何成功聚合到美国的，这是对当今中国至关重要的一个话题。我们除了准备好书桌，还必须准备心灵的安放之处。\n",
+      "summary": "哥德尔传记书评。从哥德尔不完备性定理出发，探讨数学、逻辑与知识分子的角色，反思人才为何聚集到美国，以及学者如何安放自己的心灵与书桌。",
+      "category": "阅读/文化",
+      "tags": [
+        "哥德尔",
+        "书评",
+        "数学",
+        "逻辑学",
+        "知识分子",
+        "科学史"
+      ],
+      "source": "知识分子",
+      "sourceUrl": "https://mp.weixin.qq.com/s/k9tNj39VsfzjoHGNjZe0mA",
+      "dateAdded": "2026-06-23",
+      "readTime": 8,
+      "readTimeMinutes": 8,
+      "status": "unread",
+      "rating": null,
+      "aiReview": "",
+      "relatedLinks": [],
+      "notes": "",
+      "starred": false,
+      "updatedAt": "2026-06-23"
+    },
+    {
       "id": "a-1781913600000",
       "title": "Claude 3.5 全新功能详解与实践指南",
       "author": "",
@@ -448,7 +477,13 @@
       "content": "2026年AI出海创业、独立开发与副业领域博主资源汇总，共收录112位博主。\n\n## 目录\n\n1. AI（22位）\n2. 创业（20位）\n3. SaaS/APP（18位）\n4. 出海（9位）\n5. 海外手机卡（6位）\n6. 独立开发（15位）\n7. OpenClaw（10位）\n8. 知识分享（9位）\n9. 副业（3位）\n\n\n## AI（22位）\n\n| 序号 | 名称 | 账号 | 内容方向 |\n| --- | --- | --- | --- |\n| 1 | 宝玉 | dotey | Prompt工程、AI实战、前沿工具与模型解读 |\n| 2 | AIGC周刊主理人 | op7418 | AI绘画、视频生成、设计工作流、工具趋势 |\n| 3 | Gorden_Sun | Gorden_Sun | AI资讯日报、前沿动态、新模型新产品 |\n| 4 | 小互 | xiaohu | ChatGPT、AI工具导航、产品资讯、使用技巧 |\n| 5 | shao__meng | shao__meng | Web与AI技术实践、AI论文、开源项目 |\n| 6 | thinkingjimmy | thinkingjimmy | AI工具普及、产品体验、面向普通用户 |\n| 7 | goocarlos | goocarlos | AI开发与产品结合、开发者视角、工具构建 |\n| 8 | Tumeng05 | Tumeng05 | AI创业、LLM、RAG、Agent、商业落地 |\n| 9 | Axton Liu | AxtonLiu | AI产品、开发实践、工具应用 |\n| 10 | 海辛 | haibun | AI视频、生成式视觉创作、创意类AI |\n| 11 | 倪爽 | nishuang | AI工具、生产力提升、趋势观察 |\n| 12 | 向阳乔木 | vista8 | AI产品、工作流、Vibe Coding、趋势判断 |\n| 13 | 李继刚 | lijigang | 深度Prompt、AI思考、创意应用、方法论 |\n| 14 | 李开复 | kaifulee | AI产业、创业、大模型趋势判断 |\n| 15 | WaytoAGI | WaytoAGI | AI知识整理、体系化学习、前沿资源 |\n| 16 | 响马 | xicilion | LLM、AI实战、开发者视角 |\n| 17 | Orange AI | oran_ge | AI创业者视角、Agent、产品机会 |\n| 18 | AI进化论 花生 | AlchainHust | AI编程、AI Native产品、工具实操 |\n| 19 | DN-Samuel | SamuelQZQ | AI工具、AI认知、开发者实践 |\n| 20 | 艾略特 | elliotchen100 | AI工具拆解、项目观察、开发者生态 |\n| 21 | 早见 Hayami | Hayami_kiraa | AI Builder、内容创作、增长 |\n| 22 | Berryxia.AI | berryxia | 创意型AI应用、提示词、自动化、生产流 |\n\n## 创业（20位）\n\n| 序号 | 名称 | 账号 | 内容方向 |\n| --- | --- | --- | --- |\n| 1 | 立党 | lidangzzz | 创业、投资、成长、避坑、个人观点 |\n| 2 | 铁锤人 | lxfater | AI创业、赚钱实践、产品、流量 |\n| 3 | 李自然 | nateleex | 连续创业者、创业故事、商业认知 |\n| 4 | yan5xu | yan5xu | 非典型开发者创业、AIGC应用、商业化 |\n| 5 | 圣总聊出海 | santiagoyoungus | 海外创业者、普通人出海路径 |\n| 6 | Cydiar404 | Cydiar404 | AI创业、产品落地、想法到产品化 |\n| 7 | JefferyTatsuya | JefferyTatsuya | AI创业者、产品构建、市场验证 |\n| 8 | seclink | seclink | AI趋势、创业视角、产品运营 |\n| 9 | Fenng | Fenng | 互联网老兵、商业评论、创业反思 |\n| 10 | 郭宇 | turingou | 连续创业者、科技、创业、数字生活 |\n| 11 | Tinyfool | tinyfool | 资深技术创业者、创业心态、技术路线 |\n| 12 | 霍炬 | virushuo | 科技周期、公司战略、创业与技术趋势 |\n| 13 | 范凯 | fankaishuoai | 技术创业老兵、创业复盘、技术产品 |\n| 14 | XDash | XDash | 创业洞察、工具、书单、实用思考 |\n| 15 | idoubi | idoubicc | 前工程师转独立开发、build in public |\n| 16 | 子木 | CoderJeffLee | SaaS海外营销、认知升级、案例拆解 |\n| 17 | Tom Huang | tuturetom | 开源Agent、创业工具链 |\n| 18 | Tony出海 | iamtonyzhu | 跨境AI创业、出海实战路径 |\n| 19 | 泓君 Jane | hongjun60 | 科技创业、高质量访谈、产业视角 |\n| 20 | 陈茜 Qian Chen | Valley101_Qian | 科技媒体、创业观察 |\n\n## SaaS/APP（18位）\n\n| 序号 | 名称 | 账号 | 内容方向 |\n| --- | --- | --- | --- |\n| 1 | indie_maker_fox | indie_maker_fox | 独立开发、出海SaaS、建站、流量变现 |\n| 2 | HongyuanCao | HongyuanCao | 出海SaaS、AI产品、开发、增长、SEO |\n| 3 | nextify2024 | nextify2024 | SaaS开发工具、模板、产品构建 |\n| 4 | readyfor2025 | readyfor2025 | 连续创业者、SaaS出海、产品思考 |\n| 5 | weijunext | weijunext | Next.js、SaaS出海、开发工具、产品搭建 |\n| 6 | yihui_indie | yihui_indie | SaaS独立开发、知识产品变现、实操 |\n| 7 | JinsFavorites | JinsFavorites | SaaS工具、APP产品、优化案例 |\n| 8 | xiongchun007 | xiongchun007 | 数据工具、SaaS创业、产品实践 |\n| 9 | 王俊煜 | Junyu | 产品设计、用户体验、高质量APP思考 |\n| 10 | 罗磊 | luoleiorg | 全栈体验、SaaS、APP分析 |\n| 11 | Plidezus | Plidezus | 独立APP开发者、从零到一、上架运营 |\n| 12 | 遁一子 | jesselaunz | AI产品、Prompt、产品落地 |\n| 13 | 王乐 | lewangx | AI、硬件、产品思维、新形态产品 |\n| 14 | Axton | axtonliu | iOS/Mac独立开发者、订阅变现、App Store |\n| 15 | 图拉鼎 | tualatrix | iOS独立开发者、产品审美、完成度 |\n| 16 | 子骅 Zihua Li | luinlee | 工程与产品、开发者工具、SaaS思维 |\n| 17 | 程序员鱼皮 | yupi996 | AI编程教育、产品化、内容转化 |\n| 18 | 程序员小灰 | XiaohuiAI666 | AI、内容、副业产品思维、面向普通用户 |\n\n## 出海（9位）\n\n| 序号 | 名称 | 账号 | 内容方向 |\n| --- | --- | --- | --- |\n| 1 | 哥飞 | gefei55 | 出海建站、SEO、SaaS增长、实战派 |\n| 2 | lyc_zh | lyc_zh | AI出海独立开发、产品增长 |\n| 3 | 鱼总聊AI | AI_Jasonyu | AI、出海、SaaS、APP、海外手机卡eSIM |\n| 4 | JourneymanChina | JourneymanChina | 出海、被动收入、海外创业 |\n| 5 | dev_afei | dev_afei | 前端工程师出海、英推增长、产品出海 |\n| 6 | luobogooooo | luobogooooo | 工具站构建、出海实战 |\n| 7 | GoSailGlobal | GoSailGlobal | AI SaaS出海、全球化经验 |\n| 8 | 出海去孵化器 | chuhaiqu | 出海创业生态、社区、项目观察 |\n| 9 | 大罗 SEO | daluoseo | 出海SEO、自然流量打法 |\n\n## 海外手机卡（6位）\n\n| 序号 | 名称 | 账号 | 内容方向 |\n| --- | --- | --- | --- |\n| 1 | 奶昔 | realNyarime | eSIM、虚拟手机号、使用教程 |\n| 2 | DigitalNomadLC | DigitalNomadLC | 数字游民、境外手机卡、eSIM、银行卡 |\n| 3 | RocM301 | RocM301 | 海外手机卡、eSIM、黑科技 |\n| 4 | Eva树姐 | EvaCmore | 海外手机卡、eSIM交易、使用攻略 |\n| 5 | 数字移民 | shuziyimin | 海外手机卡、银行账户、数字身份 |\n| 6 | 小糖 | itangtalk | 海外手机卡、eSIM保号、美欧攻略 |\n\n## 独立开发（15位）\n\n| 序号 | 名称 | 账号 | 内容方向 |\n| --- | --- | --- | --- |\n| 1 | austinit | austinit | 代码养活自己、AI编程、收入 |\n| 2 | guishou_56 | guishou_56 | 出海独立开发、AI工具、构建过程 |\n| 3 | 9yearfish | 9yearfish | 产品迭代、开源、独立开发经验 |\n| 4 | benshandebiao | benshandebiao | build in public、技术实战笔记 |\n| 5 | hwwaanng | hwwaanng | iOS独立开发、APP构建 |\n| 6 | OwenYoungZh | OwenYoungZh | 沉浸式翻译作者、产品与工具出海 |\n| 7 | Baye | waylybaye | iOS独立开发、应用打磨、推广 |\n| 8 | Randy | randyloop | 开源作者、独立开发者、技术前沿 |\n| 9 | Livid | livid | 中文独立开发者、极客社区代表 |\n| 10 | 花果山大圣 | shengxj1 | 前端讲师、独立开发、Web、英语 |\n| 11 | 郎瀚威 Will | FinanceYF5 | 独立开发者破冰、个人品牌 |\n| 12 | 61 | liuyi0922 | iOS高质量应用、产品审美 |\n| 13 | 马天翼 | fkysly | Indie hacker、AI、个人开发者产品 |\n| 14 | 知县 | zhixianio | OpenClaw、Agent、工具开发 |\n| 15 | 雪踏乌云 | Pluvio9yte | AI工具、自动化、增长、OpenClaw生态 |\n\n## OpenClaw（10位）\n\n| 序号 | 名称 | 账号 | 内容方向 |\n| --- | --- | --- | --- |\n| 1 | abskoop | abskoop | OpenClaw教程、AI Agent资源 |\n| 2 | stark_nico99 | stark_nico99 | OpenClaw教程、Agent实战 |\n| 3 | hongming731 | hongming731 | OpenClaw指南、社区、应用经验 |\n| 4 | penny777 | penny777 | OpenClaw项目展示、演示、优化 |\n| 5 | quarktalksss | quarktalksss | OpenClaw教程、资源整理 |\n| 6 | Khazix0918 | Khazix0918 | AI Agent、OpenClaw实践、工具优化 |\n| 7 | huangserva | servasyy_ai | OpenClaw、多Agent开发者、高级应用 |\n| 8 | 机器之心 | jiqizhixin | AI专业媒体、OpenClaw技术解读 |\n| 9 | 余弦 | evilcos | 安全视角、AI Agent越权风险、攻防 |\n| 10 | Peter Steinberger | steipete | OpenClaw创始人、项目演进 |\n\n## 知识分享（9位）\n\n| 序号 | 名称 | 账号 | 内容方向 |\n| --- | --- | --- | --- |\n| 1 | kasong2048 | kasong2048 | 知识、成长、AI副业、咨询 |\n| 2 | cellinlab | cellinlab | AI应用开发者、播客、独立工作者资源 |\n| 3 | wshuyi | wshuyi | AI工具小白入门、通俗表达 |\n| 4 | 阮一峰 | ruanyf | 科技、工具、长期高质量内容 |\n| 5 | 王川 | Svwang1 | 深度长推、历史、商业、科技、认知 |\n| 6 | 少数派 | sspai_com | 数字生活、高效工具、平台号 |\n| 7 | 阑夕 | foxshuo | 科技资讯、商业观察、视野广 |\n| 8 | 刘未鹏 | pongba | 思维方法、认知科学 |\n| 9 | Bob Fu 符尧 | Francis_YAO_ | 前沿研究、多模态、推理 |\n\n## 副业（3位）\n\n| 序号 | 名称 | 账号 | 内容方向 |\n| --- | --- | --- | --- |\n| 1 | Astronaut_1216 | Astronaut_1216 | X平台起号、AI工具变现实战 |\n| 2 | ityouknows | ityouknows | AI、跨境、自媒体、副业变现 |\n| 3 | expatlevi | expatlevi | 地理套利、出海工具、副业工具 |",
       "summary": "AI出海创业/独立开发/副业博主资源汇总表",
       "category": "AI/技术",
-      "tags": ["AI创业", "独立开发", "副业", "出海", "资源汇总"],
+      "tags": [
+        "AI创业",
+        "独立开发",
+        "副业",
+        "出海",
+        "资源汇总"
+      ],
       "source": "Excel文件",
       "sourceUrl": "",
       "dateAdded": "2026-06-23",

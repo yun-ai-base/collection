@@ -776,6 +776,14 @@ function renderStats() {
 // ============================================================
 
 function switchTab(tab) {
+  // 再次点击「收藏」tab 时清除所有筛选条件，方便从标签筛选状态回到全部
+  if (tab === 'home' && state.currentTab === 'home') {
+    state.filterCategory = '全部';
+    state.searchQuery = '';
+    var input = document.getElementById('searchInput');
+    if (input) input.value = '';
+  }
+
   state.currentTab = tab;
   state.selectMode = false;
   state.selectedIds = [];

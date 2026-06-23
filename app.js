@@ -124,7 +124,9 @@ function renderContentWithMD(text) {
     if (hMatch) {
       if (inList) { html += '</' + listType + '>'; inList = false; listType = null; }
       var level = hMatch[1].length;
-      html += '<h' + level + '>' + renderMarkdown(hMatch[2]) + '</h' + level + '>';
+      var hText = hMatch[2];
+      var hId = 'h-' + hText.toLowerCase().replace(/[^a-z0-9一-鿿]+/g, '-').replace(/^-|-$/g, '');
+      html += '<h' + level + ' id="' + hId + '">' + renderMarkdown(hText) + '</h' + level + '>';
       continue;
     }
     // 无序列表 -
@@ -212,20 +214,9 @@ function extractTOC(content) {
   for (var i = 0; i < lines.length; i++) {
     var line = lines[i].trim();
     if (!line) continue;
-    // 用 Markdown 标题
     var hMatch = line.match(/^(#{1,3})\s+(.+)/);
     if (hMatch) {
-      toc.push({ level: hMatch[1].length, text: hMatch[2], index: i });
-      continue;
-    }
-    // 纯文本中的章节标题（短行、无句号结尾、中文数字或英文数字开头）
-    if (line.length < 60 && /[。！？]$/.test(line) === false && line.length > 1) {
-      if (/^[一二三四五六七八九十\d]+[\.、\s]/.test(line) || /^[A-Z\d]/.test(line) || line.length < 40) {
-        // 避免把普通短句当标题
-        if (line.length > 2 && /[，,;；]/.test(line) === false) {
-          toc.push({ level: 2, text: line, index: i });
-        }
-      }
+      toc.push({ level: hMatch[1].length, text: hMatch[2] });
     }
   }
   return toc;
@@ -1030,7 +1021,8 @@ function renderDetail(article) {
     for (var tci = 0; tci < toc.length; tci++) {
       var t = toc[tci];
       var pad = (t.level - 1) * 12;
-      html += '<div class="toc-item" data-toc-idx="' + tci + '" style="padding-left:' + (8 + pad) + 'px">' + escapeHtml(t.text) + '</div>';
+      var tid = 'h-' + t.text.toLowerCase().replace(/[^a-z0-9一-鿿]+/g, '-').replace(/^-|-$/g, '');
+      html += '<div class="toc-item" data-href="#' + tid + '" data-toc-idx="' + tci + '" style="padding-left:' + (8 + pad) + 'px">' + escapeHtml(t.text) + '</div>';
     }
     html += '</div>';
   }
@@ -1088,10 +1080,12 @@ function renderDetail(article) {
     tocSidebar.addEventListener('click', function (e) {
       var item = e.target.closest('.toc-item');
       if (!item) return;
-      var idx = parseInt(item.dataset.tocIdx);
-      var headingEls = document.querySelectorAll('#detailContent h1, #detailContent h2, #detailContent h3');
-      if (headingEls[idx]) {
-        headingEls[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
+      var href = item.dataset.href;
+      if (href) {
+        var el = document.getElementById(href.slice(1));
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
       }
       tocSidebar.classList.remove('show');
     });

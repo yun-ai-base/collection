@@ -55,7 +55,6 @@ var STORAGE_KEY = 'my-collection-overrides';
 var DELETED_KEY = 'my-collection-deleted';
 var THEME_KEY = 'my-collection-theme';
 var LOCAL_KEY = 'my-collection-local';
-var SITE_PASSWORD = 'yunai';
 
 var $ = function (s, p) { return (p || document).querySelector(s); };
 var $$ = function (s, p) { return [].slice.call((p || document).querySelectorAll(s)); };
@@ -1760,40 +1759,6 @@ window.addEventListener('popstate', function (e) {
   }, { passive: true });
 })();
 
-// --- 密码验证 ---
-function checkPassword() {
-  if (sessionStorage.getItem('collection-auth')) {
-    document.getElementById('passwordOverlay').classList.add('hidden');
-    loadData();
-    return;
-  }
-
-  var overlay = document.getElementById('passwordOverlay');
-  var input = document.getElementById('passwordInput');
-  var btn = document.getElementById('passwordBtn');
-  var errEl = document.getElementById('passwordError');
-
-  function verify() {
-    var val = input.value.trim();
-    if (!val) { errEl.textContent = '请输入密码'; return; }
-    if (val === SITE_PASSWORD) {
-      sessionStorage.setItem('collection-auth', '1');
-      overlay.classList.add('hidden');
-      loadData();
-    } else {
-      errEl.textContent = '密码错误';
-      input.value = '';
-      input.focus();
-    }
-  }
-
-  btn.addEventListener('click', verify);
-  input.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') verify();
-  });
-  input.focus();
-}
-
 // --- 初始化 ---
 (function () {
   initTheme();
@@ -1801,5 +1766,5 @@ function checkPassword() {
   document.addEventListener('input', function (e) {
     if (e.target.matches('#searchInput')) handleSearch(e);
   });
-  checkPassword();
+  loadData();
 })();

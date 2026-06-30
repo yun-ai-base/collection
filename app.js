@@ -1384,7 +1384,8 @@ function renderDetail(article) {
     extHtml += '<div class="ai-section"><div class="section-label">🔗 拓展阅读</div><div class="ext-list">';
     for (var ei = 0; ei < article.relatedLinks.length; ei++) {
       var l = article.relatedLinks[ei];
-      extHtml += '<div class="ext-item"><span>📄 ' + escapeHtml(l.title) + '</span><span class="type-tag">' + (l.type === 'internal' ? '站内' : '外部') + '</span></div>';
+      var linkUrl = l.url || '#';
+      extHtml += '<div class="ext-item"><a href="' + escapeHtml(linkUrl) + '" target="_blank" rel="noopener">📄 ' + escapeHtml(l.title) + '</a><span class="type-tag">' + (l.type === 'internal' ? '站内' : '外部') + '</span></div>';
     }
     extHtml += '</div></div>';
   }

@@ -474,11 +474,23 @@ body {
   border-radius: var(--radius-sm);
   font-size: 13px;
   color: #2c7a9a;
-  cursor: pointer;
   transition: background var(--transition);
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.ext-item a {
+  color: inherit;
+  text-decoration: none;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ext-item a:hover {
+  text-decoration: underline;
 }
 
 .ext-item:hover {

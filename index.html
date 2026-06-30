@@ -41,6 +41,17 @@
   <!-- 悬浮 TOP 按钮 -->
   <div class="top-float" id="topFloat" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ TOP</div>
 
+  <div class="password-overlay" id="passwordOverlay">
+    <div class="password-box">
+      <div class="password-icon">🔒</div>
+      <div class="password-title">我的收藏库</div>
+      <div class="password-desc">请输入密码</div>
+      <input type="password" id="passwordInput" class="password-input" placeholder="输入密码..." autocomplete="off">
+      <div class="password-error" id="passwordError"></div>
+      <button class="password-btn" id="passwordBtn">验证</button>
+    </div>
+  </div>
+
   <script src="app.js"></script>
 </body>
 </html>

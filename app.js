@@ -1384,6 +1384,21 @@ function renderDetail(article) {
   state.currentArticle = article;
   window.history.pushState({ view: 'detail', id: article.id }, '', '#article-' + article.id);
 
+  // 受保护文章 - 密码验证
+  if (article.protected) {
+    var authKey = 'article-auth-' + article.id;
+    if (!sessionStorage.getItem(authKey)) {
+      var pwd = prompt('这篇文章需要密码才能查看，请输入密码：');
+      if (pwd === 'yunai') {
+        sessionStorage.setItem(authKey, '1');
+      } else {
+        if (pwd !== null) alert('密码错误');
+        switchTab('home');
+        return;
+      }
+    }
+  }
+
   initProgressBar();
   updateProgress();
 

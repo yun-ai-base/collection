@@ -112,6 +112,17 @@ function renderMarkdown(text) {
   return html;
 }
 
+// --- 检测纯文本章节标题 ---
+function isSectionHeader(line) {
+  // 第X章/篇/节
+  if (/^第[一二三四五六七八九十百]+[章节篇]/.test(line) && line.length <= 40) return true;
+  // 附录X
+  if (/^附录\s*[A-Z一二三四五六七八九十]/.test(line) && line.length <= 40) return true;
+  // 常见独立标题
+  if (/^(作者简介|前言|序言|跋|后记|后記|引言|绪论|结语|总结|写在前面|参考文献)/.test(line) && line.length <= 30) return true;
+  return false;
+}
+
 function renderContentWithMD(text) {
   var lines = text.split('\n');
   var html = '';
@@ -195,6 +206,13 @@ function renderContentWithMD(text) {
       html += tableHtml;
       continue;
     }
+    // 纯文本章节标题
+    if (isSectionHeader(line)) {
+      if (inList) { html += '</' + listType + '>'; inList = false; listType = null; }
+      var sId = 'h-' + line.toLowerCase().replace(/[^a-z0-9一-鿿]+/g, '-').replace(/^-|-$/g, '');
+      html += '<h2 id="' + sId + '">' + renderMarkdown(line) + '</h2>';
+      continue;
+    }
     // 普通段落
     if (inList) { html += '</' + listType + '>'; inList = false; listType = null; }
     html += '<p>' + renderMarkdown(line) + '</p>';
@@ -222,6 +240,10 @@ function extractTOC(content) {
     var hMatch = line.match(/^(#{1,3})\s+(.+)/);
     if (hMatch) {
       toc.push({ level: hMatch[1].length, text: hMatch[2] });
+      continue;
+    }
+    if (isSectionHeader(line)) {
+      toc.push({ level: 2, text: line });
     }
   }
   return toc;

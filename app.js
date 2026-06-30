@@ -1237,7 +1237,6 @@ function renderBatchBar() {
   html +=     '<option value="">移动分类…</option>';
   html +=     catOpts;
   html +=   '</select>';
-  html +=   '<button class="btn btn-danger" onclick="batchDeleteArticles()" style="font-size:13px;padding:6px 14px">🗑 删除</button>';
   html +=   '<span class="batch-count">已选 ' + state.selectedIds.length + ' 篇</span>';
   html += '</div>';
   return html;
@@ -1497,7 +1496,6 @@ function renderDetail(article) {
   html +=   '<button class="btn btn-secondary" onclick="toggleStatus(\'' + article.id + '\')">';
   html +=     article.starred ? '☆ 取消精读' : (article.status === 'read' ? '○ 标记未读' : '✓ 标记已读');
   html +=   '</button>';
-  html +=   '<button class="btn btn-danger" onclick="deleteArticle(\'' + article.id + '\')">🗑 删除</button>';
   html += '</div>';
 
   // AI 点评

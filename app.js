@@ -391,6 +391,57 @@ function showConfirmModal(desc, onConfirm) {
   document.addEventListener('keydown', escHandler);
 }
 
+// --- 密码验证蒙层 ---
+function showPasswordModal(articleTitle, onComplete) {
+  var existing = document.querySelector('.modal-overlay');
+  if (existing) existing.remove();
+  var overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);';
+  overlay.innerHTML = '<div class="modal-box" style="text-align:center;padding:32px 28px;max-width:380px;">' +
+    '<div style="font-size:2.2rem;margin-bottom:12px;">🔒</div>' +
+    '<div class="modal-title" style="font-size:1rem;">受保护的文章</div>' +
+    '<div class="modal-desc" style="font-size:0.85rem;color:#888;margin:8px 0 16px;">请输入密码查看<br><b style="color:#e0e0e0;">' + escapeHtml(articleTitle) + '</b></div>' +
+    '<input type="password" id="pwdInput" placeholder="请输入密码" style="width:100%;padding:10px 12px;font-size:0.95rem;background:#1a1a22;border:1px solid #333;border-radius:6px;color:#e0e0e0;outline:none;text-align:center;box-sizing:border-box;" autofocus>' +
+    '<div id="pwdError" style="color:#e74c3c;font-size:0.8rem;margin-top:6px;display:none;">密码错误，请重试</div>' +
+    '<div class="modal-actions" style="margin-top:16px;display:flex;gap:8px;">' +
+      '<button class="modal-btn modal-btn-cancel" id="pwdCancel" style="flex:1;">取消</button>' +
+      '<button class="modal-btn modal-btn-confirm" id="pwdConfirm" style="flex:1;background:#4da6ff;">验证</button>' +
+    '</div>' +
+  '</div>';
+  document.body.appendChild(overlay);
+  requestAnimationFrame(function () { overlay.classList.add('show'); });
+
+  var close = function (success) {
+    overlay.classList.remove('show');
+    setTimeout(function () { overlay.remove(); if (onComplete) onComplete(success); }, 200);
+  };
+
+  var doVerify = function () {
+    var val = document.getElementById('pwdInput').value;
+    if (val === 'yunai') {
+      close(true);
+    } else {
+      document.getElementById('pwdError').style.display = '';
+      document.getElementById('pwdInput').value = '';
+      document.getElementById('pwdInput').focus();
+    }
+  };
+
+  document.getElementById('pwdCancel').addEventListener('click', function () { close(false); });
+  document.getElementById('pwdConfirm').addEventListener('click', doVerify);
+  document.getElementById('pwdInput').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') doVerify();
+  });
+  overlay.addEventListener('click', function (e) {
+    if (e.target === overlay) close(false);
+  });
+  var escHandler = function (e) {
+    if (e.key === 'Escape') { close(false); document.removeEventListener('keydown', escHandler); }
+  };
+  document.addEventListener('keydown', escHandler);
+}
+
 // --- 添加文章弹窗 ---
 function showAddArticleModal() {
   var cats = Object.keys(CATEGORY_STYLES);
@@ -1388,14 +1439,15 @@ function renderDetail(article) {
   if (article.protected) {
     var authKey = 'article-auth-' + article.id;
     if (!sessionStorage.getItem(authKey)) {
-      var pwd = prompt('这篇文章需要密码才能查看，请输入密码：');
-      if (pwd === 'yunai') {
-        sessionStorage.setItem(authKey, '1');
-      } else {
-        if (pwd !== null) alert('密码错误');
-        switchTab('home');
-        return;
-      }
+      showPasswordModal(article.title, function(success) {
+        if (success) {
+          sessionStorage.setItem(authKey, '1');
+          renderDetail(article);
+        } else {
+          switchTab('home');
+        }
+      });
+      return;
     }
   }
 

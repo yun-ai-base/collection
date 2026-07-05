@@ -1,6 +1,52 @@
 {
   "articles": [
     {
+      "id": "a-1783237038341",
+      "title": "一人公司成本",
+      "author": "@学长燝柯（图文）",
+      "url": "",
+      "content": "# 一人公司成本 💰\n\n一份实用的一人公司/独立开发者技术栈成本清单：\n\n- **Claude** = 编码。（$20/月）\n- **Supabase** = 后端。（免费）\n- **Vercel** = 部署。（免费）\n- **Namecheap** = 域名。（$12/年）\n- **Stripe** = 支付。（2.9%/笔交易）\n- **GitHub** = 版本控制。（免费）\n- **Resend** = 电子邮件。（免费）\n- **Clerk** = 认证。（免费）\n- **Cloudflare** = DNS。（免费）\n- **PostHog** = 分析。（免费）\n- **Sentry** = 错误跟踪。（免费）\n- **Upstash** = Redis。（免费）\n- **Pinecone** = 向量数据库。（免费）\n\n> 来源：微信朋友圈 @学长燝柯 | 2025年7月4日\n>\n> 互动数据：237赞 · 199收藏 · 34分享",
+      "summary": "一人公司/独立开发者的低成本技术栈清单：仅 Claude 编码($20/月) + Namecheap 域名($12/年) + Stripe 交易费(2.9%) 需要付费，其余后端、部署、数据库、认证、DNS、分析、邮件等全部使用免费服务(Supabase/Vercel/GitHub/Cloudflare 等)，月均固定成本极低。",
+      "category": "效率/工具",
+      "tags": [
+        "一人公司",
+        "创业成本",
+        "独立开发者",
+        "SaaS",
+        "技术栈",
+        "免费工具",
+        "Side Project"
+      ],
+      "source": "微信朋友圈",
+      "sourceUrl": "",
+      "dateAdded": "2026-07-05",
+      "readTime": 3,
+      "readTimeMinutes": 3,
+      "status": "unread",
+      "rating": null,
+      "aiReview": "一份精炼的一人公司启动成本参考，列出了13个关键工具及其费用。核心亮点是\"几乎全免费\"——除Claude($20/月)、Namecheap域名($12/年)和Stripe交易佣金(2.9%)外，其余10个服务均为免费层。适合作为独立开发者/Side Project的起步工具箱速查表。不足在于未涉及服务器/云主机成本(如Vercel免费额度用完后)、法律/财务成本(注册公司、报税、会计)，以及这些免费层的实际限制(如Supabase的数据库大小、Pinecone的向量数量)。作为入门参考有价值，但实际落地需结合具体业务规模评估扩容成本。",
+      "relatedLinks": [
+        {
+          "title": "Claude AI 编码助手",
+          "url": "https://claude.ai",
+          "type": "external"
+        },
+        {
+          "title": "Supabase 开源 Firebase 替代",
+          "url": "https://supabase.com",
+          "type": "external"
+        },
+        {
+          "title": "Vercel 前端部署平台",
+          "url": "https://vercel.com",
+          "type": "external"
+        }
+      ],
+      "notes": "",
+      "starred": false,
+      "updatedAt": "2026-07-05"
+    },
+    {
       "id": "a-1782803075199",
       "title": "中国的居民消费：我们到底缺什么？补什么？还要坚持什么？",
       "author": "小陆师傅 @STANLEES4",

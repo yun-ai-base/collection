@@ -1008,8 +1008,24 @@
       "readTimeMinutes": 12,
       "status": "unread",
       "rating": null,
-      "aiReview": "",
-      "relatedLinks": [],
+      "aiReview": "一篇典型的L先生说风格文章，从认知神经科学视角提炼了提升大脑能力的四个基础维度：有氧运动、学习新领域、适度输出、深度社交。核心观点是「聪明」的生理基础是大脑健康，而非技巧堆砌——这个切入点比市面上多数认知训练类文章更扎实。亮点在于四点都有研究支撑（如2025年Singh等人的系统综述证实运动对记忆力和执行功能的改善），且给出了可操作的建议（每周150-300分钟中等强度有氧运动、用AI辅助跨领域学习、输出即整理、拓展社交宽度与深度）。不足是四点各自独立，缺少如何系统整合的讨论；另外「一定强度的社交」这一条对内向者可能门槛偏高，作者也未给出渐进式的社交训练方案。整体来说是一篇不错的科普级认知提升入门，适合作为行动起点。",
+      "relatedLinks": [
+        {
+          "title": "Singh et al. (2025) - 运动与认知功能的系统综述",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/",
+          "type": "external"
+        },
+        {
+          "title": "L先生说 - 知乎专栏",
+          "url": "https://www.zhihu.com/people/lachel",
+          "type": "external"
+        },
+        {
+          "title": "BDNF与大脑可塑性 - 科普介绍",
+          "url": "#",
+          "type": "external"
+        }
+      ],
       "notes": "",
       "starred": false,
       "updatedAt": "2026-07-11"

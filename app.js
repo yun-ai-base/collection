@@ -100,6 +100,8 @@ function highlightText(text, query) {
 // --- Markdown 渲染 ---
 function renderMarkdown(text) {
   var html = escapeHtml(text);
+  // ![alt](url) or ![alt](url "title")
+  html = html.replace(/!\[(.*?)\]\((\S+?)(?:\s+"(.*?)")?\)/g, '<img src="$2" alt="$1" title="$3" style="max-width:100%;border-radius:8px;margin:12px 0;display:inline-block;">');
   // **bold**
   html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   // *italic*
@@ -210,6 +212,12 @@ function renderContentWithMD(text) {
       if (inList) { html += '</' + listType + '>'; inList = false; listType = null; }
       var sId = 'h-' + line.toLowerCase().replace(/[^a-z0-9一-鿿]+/g, '-').replace(/^-|-$/g, '');
       html += '<h2 id="' + sId + '">' + renderMarkdown(line) + '</h2>';
+      continue;
+    }
+    // 图片单独成行（避免 p 包裹）
+    if (/^!\[.*?\]\(.*?\)/.test(line)) {
+      if (inList) { html += '</' + listType + '>'; inList = false; listType = null; }
+      html += '<div style="text-align:center">' + renderMarkdown(line) + '</div>';
       continue;
     }
     // 普通段落

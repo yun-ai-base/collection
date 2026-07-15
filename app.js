@@ -48,7 +48,9 @@ var state = {
   articleSearchQuery: '',
   articleSearchResults: [],
   articleSearchCurrent: -1,
-  tocVisible: false
+  tocVisible: false,
+  pageSize: 12,
+  currentPage: 1
 };
 
 var STORAGE_KEY = 'my-collection-overrides';
@@ -648,13 +650,28 @@ function renderHome() {
   if (articles.length === 0) {
     html += '<div class="empty-state"><div class="icon">📭</div><h3>暂无内容</h3><p style="margin-top:8px;color:#999">还没有收藏任何文章</p></div>';
   } else {
+    var totalFiltered = articles.length;
+    var endIdx = state.currentPage * state.pageSize;
+    var pageArticles = articles.slice(0, endIdx);
+    var hasMore = endIdx < totalFiltered;
+
     var gridHtml = '';
     var renderFn = state.viewMode === 'grid' ? renderCard : renderCardListItem;
-    for (var i = 0; i < articles.length; i++) {
-      gridHtml += renderFn(articles[i]);
+    for (var i = 0; i < pageArticles.length; i++) {
+      gridHtml += renderFn(pageArticles[i]);
     }
     var containerClass = state.viewMode === 'grid' ? 'card-grid' : 'card-list';
     html += '<div class="' + containerClass + '">' + gridHtml + '</div>';
+
+    html += '<div class="load-more-bar">';
+    html += '  <span class="load-more-info">已加载 ' + pageArticles.length + ' / ' + totalFiltered + ' 篇</span>';
+    if (hasMore) {
+      html += '  <button class="btn btn-primary load-more-btn" onclick="loadMore()">加载更多</button>';
+    } else if (totalFiltered > state.pageSize) {
+      html += '  <span class="load-more-done">已全部加载</span>';
+    }
+    html += '</div>';
+
     if (state.selectMode) {
       html += '<div style="margin-bottom:60px"></div>';
     }
@@ -692,11 +709,12 @@ function renderSortSelect() {
     opts += '<option value="' + o.key + '" ' + (state.sortBy === o.key ? 'selected' : '') + '>' + o.label + '</option>';
   }
   sel.innerHTML = opts;
-  sel.onchange = function () { state.sortBy = sel.value; renderHome(); };
+  sel.onchange = function () { state.sortBy = sel.value; resetPagination(); renderHome(); };
   var orderBtn = $('#sortOrderBtn');
   if (orderBtn) {
     orderBtn.onclick = function () {
       state.sortOrder = state.sortOrder === 'desc' ? 'asc' : 'desc';
+      resetPagination();
       renderHome();
     };
   }
@@ -733,6 +751,15 @@ function getFilteredArticles() {
   return list;
 }
 
+// --- 懒加载分页 ---
+function loadMore() {
+  state.currentPage++;
+  renderHome();
+}
+function resetPagination() {
+  state.currentPage = 1;
+}
+
 function renderCategoryNav() {
   var nav = $('#categoryNav');
   if (!nav) return;
@@ -751,6 +778,7 @@ function renderCategoryNav() {
     var btn = e.target.closest('.cat-btn');
     if (!btn) return;
     state.filterCategory = btn.dataset.category;
+    resetPagination();
     renderHome();
   });
 }
@@ -826,6 +854,7 @@ function bindTagClicks() {
       state.searchQuery = t;
       var input = document.getElementById('searchInput');
       if (input) input.value = t;
+      resetPagination();
       renderHome();
     });
   }
@@ -1719,7 +1748,7 @@ var searchTimer;
 function handleSearch(e) {
   state.searchQuery = e.target.value;
   clearTimeout(searchTimer);
-  searchTimer = setTimeout(function () { renderHome(); }, 300);
+  searchTimer = setTimeout(function () { resetPagination(); renderHome(); }, 300);
 }
 
 // --- 键盘快捷键 ---

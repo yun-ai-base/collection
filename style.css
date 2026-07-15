@@ -290,6 +290,30 @@ body {
   color: var(--text);
 }
 
+/* --- 懒加载分页 --- */
+.load-more-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 32px 0;
+  flex-wrap: wrap;
+}
+.load-more-info {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.load-more-btn {
+  padding: 8px 28px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.load-more-done {
+  font-size: 13px;
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
 /* --- 空状态 --- */
 .empty-state {
   text-align: center;

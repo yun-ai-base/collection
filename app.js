@@ -651,9 +651,10 @@ function renderHome() {
     html += '<div class="empty-state"><div class="icon">📭</div><h3>暂无内容</h3><p style="margin-top:8px;color:#999">还没有收藏任何文章</p></div>';
   } else {
     var totalFiltered = articles.length;
-    var endIdx = state.currentPage * state.pageSize;
-    var pageArticles = articles.slice(0, endIdx);
-    var hasMore = endIdx < totalFiltered;
+    var totalPages = Math.max(1, Math.ceil(totalFiltered / state.pageSize));
+    var startIdx = (state.currentPage - 1) * state.pageSize;
+    var endIdx = Math.min(startIdx + state.pageSize, totalFiltered);
+    var pageArticles = articles.slice(startIdx, endIdx);
 
     var gridHtml = '';
     var renderFn = state.viewMode === 'grid' ? renderCard : renderCardListItem;
@@ -664,12 +665,11 @@ function renderHome() {
     html += '<div class="' + containerClass + '">' + gridHtml + '</div>';
 
     html += '<div class="pagination-bar">';
-    html += '  <span class="pagination-info">共 ' + totalFiltered + ' 篇 · 第 ' + state.currentPage + ' / ' + Math.max(1, Math.ceil(totalFiltered / state.pageSize)) + ' 页</span>';
+    html += '  <span class="pagination-info">共 ' + totalFiltered + ' 篇 · 第 ' + state.currentPage + ' / ' + totalPages + ' 页</span>';
     html += '  <div class="pagination-nav">';
     if (state.currentPage > 1) {
       html += '    <button class="page-btn" onclick="goToPage(' + (state.currentPage - 1) + ')">‹</button>';
     }
-    var totalPages = Math.ceil(totalFiltered / state.pageSize);
     var startPage = Math.max(1, state.currentPage - 2);
     var endPage = Math.min(totalPages, state.currentPage + 2);
     if (startPage > 1) {

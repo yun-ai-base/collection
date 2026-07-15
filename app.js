@@ -663,13 +663,30 @@ function renderHome() {
     var containerClass = state.viewMode === 'grid' ? 'card-grid' : 'card-list';
     html += '<div class="' + containerClass + '">' + gridHtml + '</div>';
 
-    html += '<div class="load-more-bar">';
-    html += '  <span class="load-more-info">已加载 ' + pageArticles.length + ' / ' + totalFiltered + ' 篇</span>';
-    if (hasMore) {
-      html += '  <button class="btn btn-primary load-more-btn" onclick="loadMore()">加载更多</button>';
-    } else if (totalFiltered > state.pageSize) {
-      html += '  <span class="load-more-done">已全部加载</span>';
+    html += '<div class="pagination-bar">';
+    html += '  <span class="pagination-info">共 ' + totalFiltered + ' 篇 · 第 ' + state.currentPage + ' / ' + Math.max(1, Math.ceil(totalFiltered / state.pageSize)) + ' 页</span>';
+    html += '  <div class="pagination-nav">';
+    if (state.currentPage > 1) {
+      html += '    <button class="page-btn" onclick="goToPage(' + (state.currentPage - 1) + ')">‹</button>';
     }
+    var totalPages = Math.ceil(totalFiltered / state.pageSize);
+    var startPage = Math.max(1, state.currentPage - 2);
+    var endPage = Math.min(totalPages, state.currentPage + 2);
+    if (startPage > 1) {
+      html += '    <button class="page-btn" onclick="goToPage(1)">1</button>';
+      if (startPage > 2) html += '    <span class="page-ellipsis">…</span>';
+    }
+    for (var pi = startPage; pi <= endPage; pi++) {
+      html += '    <button class="page-btn' + (pi === state.currentPage ? ' active' : '') + '" onclick="goToPage(' + pi + ')">' + pi + '</button>';
+    }
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) html += '    <span class="page-ellipsis">…</span>';
+      html += '    <button class="page-btn" onclick="goToPage(' + totalPages + ')">' + totalPages + '</button>';
+    }
+    if (state.currentPage < totalPages) {
+      html += '    <button class="page-btn" onclick="goToPage(' + (state.currentPage + 1) + ')">›</button>';
+    }
+    html += '  </div>';
     html += '</div>';
 
     if (state.selectMode) {
@@ -751,10 +768,11 @@ function getFilteredArticles() {
   return list;
 }
 
-// --- 懒加载分页 ---
-function loadMore() {
-  state.currentPage++;
+// --- 分页 ---
+function goToPage(page) {
+  state.currentPage = page;
   renderHome();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 function resetPagination() {
   state.currentPage = 1;
@@ -1486,6 +1504,44 @@ function renderDetail(article) {
       });
       return;
     }
+  }
+
+  // 懒加载正文内容
+  if (!article.content && !article._loading) {
+    article._loading = true;
+    var app = $('#app');
+    app.innerHTML = '<div class="loading-content"><div class="loading-spinner"></div><p>正在加载文章内容…</p></div>';
+    fetch('articles/' + article.id + '.md?' + Date.now())
+      .then(function (r) {
+        if (!r.ok) throw new Error('not found');
+        return r.text();
+      })
+      .then(function (text) {
+        article.content = text;
+        article._loading = false;
+        renderDetail(article);
+      })
+      .catch(function () {
+        // 回退：data.json 内可能还嵌有 content
+        return fetch('data.json?' + Date.now()).then(function (r) { return r.json(); });
+      })
+      .then(function (fullData) {
+        if (!fullData) return;
+        var full = fullData.articles.find(function (a) { return a.id === article.id; });
+        if (full && full.content) {
+          article.content = full.content;
+        } else {
+          article.content = '（文章内容暂不可用）';
+        }
+        article._loading = false;
+        renderDetail(article);
+      })
+      .catch(function () {
+        article.content = '（文章内容加载失败）';
+        article._loading = false;
+        renderDetail(article);
+      });
+    return;
   }
 
   initProgressBar();

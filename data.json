@@ -1101,8 +1101,19 @@
       "readTimeMinutes": 2,
       "status": "unread",
       "rating": null,
-      "aiReview": "",
-      "relatedLinks": [],
+      "aiReview": "这20个运动覆盖了从起床到睡前的全时段养生，优点是动作简单、门槛极低，适合久坐办公族和老年人入门。从运动科学角度看，踮脚（促进小腿血液循环）、提肛（改善盆底肌）、深呼吸（调节自主神经）等确实有明确生理获益。不足的是方案缺乏进阶逻辑和强度建议——每天30个深蹲对新手可能足够，但对有一定运动基础的人强度偏低；仰卧起坐对腰椎压力较大，建议改为卷腹。建议作为日常活动量补充，每周再搭配2-3次有氧运动（快走/游泳/骑行）效果更佳。",
+      "relatedLinks": [
+        {
+          "title": "WHO 身体活动指南",
+          "url": "https://www.who.int/zh/publications/i/item/9789240015128",
+          "type": "external"
+        },
+        {
+          "title": "中国居民膳食指南（2022）- 运动部分",
+          "url": "https://www.cnsoc.com/",
+          "type": "external"
+        }
+      ],
       "starred": false,
       "updatedAt": "2026-07-15"
     }

@@ -10,6 +10,7 @@
   --text-secondary: #777;
   --text-muted: #999;
   --border: #eee;
+  --primary: #2c2c2c;
   --radius: 12px;
   --radius-sm: 8px;
   --radius-lg: 16px;
@@ -1057,6 +1058,7 @@ mark {
   --text-secondary: #a0a0a8;
   --text-muted: #71717a;
   --border: #333338;
+  --primary: #e4e4e7;
   --shadow: 0 1px 4px rgba(0,0,0,0.3);
   --shadow-hover: 0 4px 16px rgba(0,0,0,0.4);
 }

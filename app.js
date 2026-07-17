@@ -57,6 +57,7 @@ var STORAGE_KEY = 'my-collection-overrides';
 var DELETED_KEY = 'my-collection-deleted';
 var THEME_KEY = 'my-collection-theme';
 var LOCAL_KEY = 'my-collection-local';
+var READLATER_KEY = 'my-collection-readlater';
 
 // --- 全文检索索引（由 search-index.json 提供，覆盖文章正文） ---
 var searchIndex = null;       // [{id,title,author,category,tags,summary,content}]
@@ -321,6 +322,36 @@ function loadLocalArticles() {
 function saveLocalArticles() {
   var locals = state.articles.filter(function (a) { return a._local; });
   localStorage.setItem(LOCAL_KEY, JSON.stringify(locals));
+}
+
+// --- 稍后读队列 ---
+function loadReadLater() {
+  try { var raw = localStorage.getItem(READLATER_KEY); return raw ? JSON.parse(raw) : []; }
+  catch (e) { return []; }
+}
+function saveReadLater(list) {
+  localStorage.setItem(READLATER_KEY, JSON.stringify(list));
+}
+function isReadLater(id) {
+  return loadReadLater().indexOf(id) !== -1;
+}
+function toggleReadLater(id) {
+  var list = loadReadLater();
+  var i = list.indexOf(id);
+  var added = false;
+  if (i === -1) { list.push(id); added = true; }
+  else { list.splice(i, 1); }
+  saveReadLater(list);
+  return added;
+}
+
+// --- 长文阅读进度持久化 ---
+function getProgress(id) {
+  var v = localStorage.getItem('my-collection-progress-' + id);
+  return v ? parseInt(v, 10) || 0 : 0;
+}
+function setProgress(id, pct) {
+  try { localStorage.setItem('my-collection-progress-' + id, String(Math.round(pct))); } catch (e) {}
 }
 
 function saveOverrides() {
@@ -830,6 +861,9 @@ function renderCard(article) {
 
   var html = '';
   html += '<div class="card' + starredCls + selectedCls + '" data-id="' + article.id + '">';
+  if (isReadLater(article.id)) {
+    html += '<div class="card-readlater-badge" data-readlater="' + article.id + '" title="稍后读">📑</div>';
+  }
   html += selectHtml;
   html +=   '<div class="card-header">';
   html +=     '<span class="card-badge" style="background:' + catStyle.bg + ';color:' + catStyle.color + '">' + escapeHtml(article.category) + '</span>';
@@ -849,6 +883,10 @@ function renderCard(article) {
   html +=     '<span>📌 ' + escapeHtml(article.source) + ' · ' + (article.readTimeMinutes || article.readTime || 0) + 'min</span>';
   html +=     '<span class="' + statusCls + '">● ' + statusLabel + '</span>';
   html +=   '</div>';
+  var prog = getProgress(article.id);
+  if (prog > 2) {
+    html += '<div class="card-progress"><div class="card-progress-fill" style="width:' + prog + '%"></div></div>';
+  }
   html += '</div>';
   return html;
 }
@@ -858,6 +896,14 @@ function bindCardClicks() {
   for (var i = 0; i < cards.length; i++) {
     (function (card) {
       card.addEventListener('click', function (e) {
+        var badge = e.target.closest('.card-readlater-badge');
+        if (badge) {
+          var id = badge.dataset.readlater;
+          toggleReadLater(id);
+          showToast(isReadLater(id) ? '已加入「稍后读」' : '已移出「稍后读」');
+          badge.remove();
+          return;
+        }
         if (e.target.closest('.card-tag') || e.target.closest('.card-checkbox')) return;
         if (state.selectMode) {
           toggleSelectArticle(card.dataset.id);
@@ -1110,6 +1156,51 @@ function renderDashboard() {
     html += '<span class="dash-tag-item" style="font-size:' + size + 'px" data-tag="' + escapeHtml(tag) + '">#' + escapeHtml(tag) + '</span>';
   }
   html +=   '</div>';
+  html += '</div>';
+
+  // 评分分布
+  var ratingCounts = [0, 0, 0, 0, 0, 0];
+  for (var ri3 = 0; ri3 < articles.length; ri3++) {
+    var r3 = articles[ri3].rating || 0;
+    ratingCounts[r3] = (ratingCounts[r3] || 0) + 1;
+  }
+  var maxRating = 1;
+  for (var rk = 1; rk <= 5; rk++) if (ratingCounts[rk] > maxRating) maxRating = ratingCounts[rk];
+  html += '<div class="dash-section">';
+  html +=   '<div class="dash-section-title">⭐ 评分分布</div>';
+  html +=   '<div class="bar-chart">';
+  for (var rk2 = 1; rk2 <= 5; rk2++) {
+    var rp = (ratingCounts[rk2] / maxRating * 100).toFixed(0);
+    html += '<div class="bar-row"><span class="bar-label">' + rk2 + '★</span><div class="bar-track"><div class="bar-fill" style="width:' + rp + '%;background:#d4a030"></div></div><span class="bar-value">' + ratingCounts[rk2] + '</span></div>';
+  }
+  html +=   '<div class="bar-row"><span class="bar-label">未评</span><div class="bar-track"><div class="bar-fill" style="width:' + (ratingCounts[0] / maxRating * 100).toFixed(0) + '%;background:#bbb"></div></div><span class="bar-value">' + ratingCounts[0] + '</span></div>';
+  html +=   '</div>';
+  html += '</div>';
+
+  // Top 作者 / 来源
+  var authorCounts = {};
+  for (var ai = 0; ai < articles.length; ai++) {
+    var au = articles[ai].author || '佚名';
+    authorCounts[au] = (authorCounts[au] || 0) + 1;
+  }
+  var sortedAuthors = Object.keys(authorCounts).sort(function (a, b) { return authorCounts[b] - authorCounts[a]; }).slice(0, 8);
+  var maxAuthor = 1;
+  for (var ak = 0; ak < sortedAuthors.length; ak++) if (authorCounts[sortedAuthors[ak]] > maxAuthor) maxAuthor = authorCounts[sortedAuthors[ak]];
+  html += '<div class="dash-section">';
+  html +=   '<div class="dash-section-title">✍️ 热门作者 / 来源</div>';
+  html +=   '<div class="bar-chart">';
+  for (var aki = 0; aki < sortedAuthors.length; aki++) {
+    var au2 = sortedAuthors[aki];
+    var ap = (authorCounts[au2] / maxAuthor * 100).toFixed(0);
+    html += '<div class="bar-row"><span class="bar-label">' + escapeHtml(au2) + '</span><div class="bar-track"><div class="bar-fill" style="width:' + ap + '%;background:var(--text)"></div></div><span class="bar-value">' + authorCounts[au2] + '</span></div>';
+  }
+  html +=   '</div>';
+  html += '</div>';
+
+  // 收藏活跃度日历热力图
+  html += '<div class="dash-section">';
+  html +=   '<div class="dash-section-title">🗓️ 收藏活跃度（近半年）</div>';
+  html +=   renderCalendarHeatmap(articles);
   html += '</div>';
 
   html += '</div>';
@@ -1441,6 +1532,9 @@ function updateProgress() {
   var docHeight = document.documentElement.scrollHeight - window.innerHeight;
   var pct = docHeight > 0 ? Math.min(scrollTop / docHeight * 100, 100) : 0;
   progressBar.style.width = pct + '%';
+  if (state.currentArticle && state.currentView === 'detail') {
+    setProgress(state.currentArticle.id, pct);
+  }
 }
 
 // --- 文章内搜索 ---
@@ -1562,6 +1656,77 @@ function searchNav(dir) {
 }
 
 // --- 渲染详情页 ---
+// --- 相关推荐（基于标签重合度） ---
+function getRelatedArticles(article, n) {
+  var tags = article.tags || [];
+  var scored = [];
+  for (var i = 0; i < state.articles.length; i++) {
+    var a = state.articles[i];
+    if (!a || a.id === article.id) continue;
+    var common = 0;
+    for (var t = 0; t < tags.length; t++) {
+      if (a.tags && a.tags.indexOf(tags[t]) !== -1) common++;
+    }
+    // 优先按标签重合度；无交集时退化为同分类兜底
+    var score = common > 0 ? common : (a.category === article.category ? 0.5 : 0);
+    if (score > 0) scored.push({ a: a, s: score });
+  }
+  scored.sort(function (x, y) {
+    if (y.s !== x.s) return y.s - x.s;
+    return (y.a.dateAdded < x.a.dateAdded) ? -1 : 1;
+  });
+  return scored.slice(0, n || 4).map(function (x) { return x.a; });
+}
+
+function toggleReadLaterAndRefresh(id) {
+  var added = toggleReadLater(id);
+  showToast(added ? '已加入「稍后读」' : '已移出「稍后读」');
+  var btn = document.getElementById('readLaterBtn');
+  if (btn) btn.innerHTML = added ? '📑 已稍后读' : '📑 稍后读';
+}
+
+// --- 收藏活跃度日历热力图（GitHub contribution 风格） ---
+function renderCalendarHeatmap(articles) {
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+  var counts = {};
+  for (var i = 0; i < articles.length; i++) {
+    var d = articles[i].dateAdded;
+    if (d) counts[d] = (counts[d] || 0) + 1;
+  }
+  var weeks = 26;
+  var today = new Date();
+  var end = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  var start = new Date(end);
+  start.setDate(start.getDate() - (weeks * 7 - 1));
+  var startDow = start.getDay();
+  start.setDate(start.getDate() - startDow); // 对齐到周日
+  var max = 1;
+  var days = [];
+  var cur = new Date(start);
+  while (cur <= end) {
+    var key = cur.getFullYear() + '-' + pad(cur.getMonth() + 1) + '-' + pad(cur.getDate());
+    var c = counts[key] || 0;
+    if (c > max) max = c;
+    days.push({ key: key, c: c });
+    cur.setDate(cur.getDate() + 1);
+  }
+  var cols = [];
+  for (var ci = 0; ci < days.length; ci += 7) cols.push(days.slice(ci, ci + 7));
+  var html = '<div class="heatmap">';
+  for (var ci2 = 0; ci2 < cols.length; ci2++) {
+    html += '<div class="heatmap-col">';
+    for (var di = 0; di < cols[ci2].length; di++) {
+      var d2 = cols[ci2][di];
+      var lvl = d2.c === 0 ? 0 : Math.ceil(d2.c / max * 4);
+      html += '<div class="heatmap-cell heat-level-' + lvl + '" title="' + d2.key + '：' + d2.c + ' 篇"></div>';
+    }
+    html += '</div>';
+  }
+  html += '</div>';
+  html += '<div class="heatmap-legend"><span>少</span><span class="heatmap-cell heat-level-0"></span><span class="heatmap-cell heat-level-1"></span><span class="heatmap-cell heat-level-2"></span><span class="heatmap-cell heat-level-3"></span><span class="heatmap-cell heat-level-4"></span><span>多</span></div>';
+  return html;
+}
+
 function renderDetail(article) {
   state.currentView = 'detail';
   state.currentArticle = article;
@@ -1621,6 +1786,7 @@ function renderDetail(article) {
   }
 
   initProgressBar();
+  progressBar.style.width = getProgress(article.id) + '%';
   updateProgress();
 
   state.articleSearchQuery = '';
@@ -1731,6 +1897,7 @@ function renderDetail(article) {
   html +=   '<button class="btn btn-secondary" onclick="toggleStatus(\'' + article.id + '\')">';
   html +=     article.starred ? '☆ 取消精读' : (article.status === 'read' ? '○ 标记未读' : '✓ 标记已读');
   html +=   '</button>';
+  html +=   '<button class="btn btn-secondary" id="readLaterBtn" onclick="toggleReadLaterAndRefresh(\'' + article.id + '\')">' + (isReadLater(article.id) ? '📑 已稍后读' : '📑 稍后读') + '</button>';
   html += '</div>';
 
   // AI 点评
@@ -1751,6 +1918,23 @@ function renderDetail(article) {
 
   // 上下篇
   html += '<div class="prev-next" id="prevNext">' + prevHtml + nextHtml + '</div>';
+
+  // 相关推荐
+  var related = getRelatedArticles(article, 4);
+  if (related.length) {
+    html += '<div class="related-section">';
+    html +=   '<div class="section-label">🔗 相关推荐</div>';
+    html +=   '<div class="related-grid">';
+    for (var rli = 0; rli < related.length; rli++) {
+      var ra = related[rli];
+      html += '<div class="related-card" data-id="' + ra.id + '">';
+      html +=   '<div class="related-title">' + highlightText(ra.title, '') + '</div>';
+      html +=   '<div class="related-meta">' + escapeHtml(ra.category) + (ra.tags && ra.tags.length ? ' · ' + ra.tags.slice(0, 3).map(function (t) { return '#' + t; }).join(' ') : '') + '</div>';
+      html += '</div>';
+    }
+    html +=   '</div>';
+    html += '</div>';
+  }
 
   html +=   '</div>'; // detail-container
   html += '</div>'; // detail-page
@@ -1806,6 +1990,17 @@ function renderDetail(article) {
       if (!btn) return;
       navigateTo('#/article/' + encodeURIComponent(btn.dataset.id));
     });
+  }
+
+  // 相关推荐卡片点击
+  var relCards = document.querySelectorAll('.related-card');
+  for (var rci = 0; rci < relCards.length; rci++) {
+    (function (el) {
+      el.addEventListener('click', function () {
+        var a = state.articles.find(function (x) { return x.id === el.dataset.id; });
+        if (a) navigateTo('#/article/' + encodeURIComponent(a.id));
+      });
+    })(relCards[rci]);
   }
 
   // TOC 切换

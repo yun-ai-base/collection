@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>📖 我的收藏库</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='80'>📖</text></svg>">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <meta name="theme-color" content="#2b6cb0">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -43,5 +46,12 @@
   <div class="top-float" id="topFloat" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ TOP</div>
 
   <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('./sw.js').catch(function () {});
+      });
+    }
+  </script>
 </body>
 </html>

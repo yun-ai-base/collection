@@ -58,6 +58,11 @@ var DELETED_KEY = 'my-collection-deleted';
 var THEME_KEY = 'my-collection-theme';
 var LOCAL_KEY = 'my-collection-local';
 
+// --- 全文检索索引（由 search-index.json 提供，覆盖文章正文） ---
+var searchIndex = null;       // [{id,title,author,category,tags,summary,content}]
+var searchIndexMap = null;    // id -> item
+var searchIndexLoading = false;
+
 var $ = function (s, p) { return (p || document).querySelector(s); };
 var $$ = function (s, p) { return [].slice.call((p || document).querySelectorAll(s)); };
 
@@ -293,7 +298,8 @@ function fallbackCopy(text) {
 function randomArticle() {
   var list = state.articles;
   if (!list.length) return showToast('还没有收藏文章');
-  renderDetail(list[Math.floor(Math.random() * list.length)]);
+  var a = list[Math.floor(Math.random() * list.length)];
+  navigateTo('#/article/' + encodeURIComponent(a.id));
 }
 
 // --- localStorage ---
@@ -582,7 +588,9 @@ async function loadData() {
     var locals = loadLocalArticles();
     locals.forEach(function (a) { a._local = true; });
     state.articles = state.articles.concat(locals);
-    renderHome();
+    // 预加载全文检索索引（后台静默进行，首次搜索即可用）
+    ensureSearchIndex(null);
+    route();
   } catch (e) {
     console.error('数据加载失败:', e);
     $('#app').innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><h3>数据加载失败</h3><p style="margin-top:8px;color:#999">请确保 data.json 文件存在且格式正确</p></div>';
@@ -617,7 +625,6 @@ function toggleTheme() {
 function renderHome() {
   state.currentView = 'home';
   state.currentArticle = null;
-  window.history.pushState({ view: 'home' }, '', '#home');
   document.title = '收藏库';
 
   var app = $('#app');
@@ -639,6 +646,7 @@ function renderHome() {
   html +=     '<button class="btn-icon' + (state.selectMode ? ' active' : '') + '" onclick="toggleSelectMode()" title="选择" style="' + (state.selectMode ? 'background:var(--text);color:white;border-color:var(--text)' : '') + '">☐</button>';
   html +=     '<div class="toolbar-extras">';
   html +=       '<button class="btn-icon" onclick="exportBackup()" title="导出备份">📦</button>';
+  html +=       '<button class="btn-icon" onclick="exportMergedData()" title="导出合并主库（含本地新增+编辑，可直接替换 data.json）">🔀</button>';
   html +=       '<button class="btn-icon" onclick="document.getElementById(\'importInput\').click()" title="导入备份">📥</button>';
   html +=       '<input type="file" id="importInput" accept=".json" style="display:none" onchange="importBackup(event)">';
   html +=     '</div>';
@@ -745,10 +753,14 @@ function getFilteredArticles() {
   if (state.searchQuery.trim()) {
     var q = state.searchQuery.trim().toLowerCase();
     list = list.filter(function (a) {
-      return a.title.toLowerCase().indexOf(q) !== -1 ||
-        a.tags.some(function (t) { return t.toLowerCase().indexOf(q) !== -1; }) ||
-        a.summary.toLowerCase().indexOf(q) !== -1 ||
-        (a.content && a.content.toLowerCase().indexOf(q) !== -1);
+      if (a.title.toLowerCase().indexOf(q) !== -1) return true;
+      if (a.tags.some(function (t) { return t.toLowerCase().indexOf(q) !== -1; })) return true;
+      if (a.summary.toLowerCase().indexOf(q) !== -1) return true;
+      if (a.content && a.content.toLowerCase().indexOf(q) !== -1) return true;
+      // 全文检索：覆盖 articles/*.md 正文
+      if (searchIndexMap && searchIndexMap[a.id] && searchIndexMap[a.id].content &&
+          searchIndexMap[a.id].content.toLowerCase().indexOf(q) !== -1) return true;
+      return false;
     });
   }
   var sortBy = state.sortBy;
@@ -854,7 +866,7 @@ function bindCardClicks() {
         var article = state.articles.find(function (a) { return a.id === card.dataset.id; });
         if (article) {
           sessionStorage.setItem('home-scroll', window.scrollY);
-          renderDetail(article);
+          navigateTo('#/article/' + encodeURIComponent(article.id));
         }
       });
     })(cards[i]);
@@ -873,7 +885,7 @@ function bindTagClicks() {
       var input = document.getElementById('searchInput');
       if (input) input.value = t;
       resetPagination();
-      renderHome();
+      ensureSearchIndex(function () { renderHome(); });
     });
   }
 }
@@ -905,7 +917,8 @@ function renderStats() {
 
 function switchTab(tab) {
   // 再次点击「收藏」tab 时清除所有筛选条件，方便从标签筛选状态回到全部
-  if (tab === 'home' && state.currentTab === 'home') {
+  if (tab === 'home' && state.currentTab === 'home' &&
+      (location.hash === '' || location.hash === '#home' || location.hash === '#/home')) {
     state.filterCategory = '全部';
     state.searchQuery = '';
     var input = document.getElementById('searchInput');
@@ -916,15 +929,79 @@ function switchTab(tab) {
   state.selectMode = false;
   state.selectedIds = [];
 
+  navigateTo('#/' + tab);
+}
+
+// === 路由（hash 驱动，支持刷新/分享/直达） ===
+function navigateTo(hash) {
+  var cur = location.hash || '';
+  if (cur === hash || (hash === '#/home' && (cur === '' || cur === '#home'))) {
+    route(); // 相同 hash 也强制重渲染
+  } else {
+    location.hash = hash;
+  }
+}
+
+function parseHash() {
+  var h = location.hash || '';
+  var clean = h.replace(/^#\/?/, ''); // 'home' | 'dashboard' | 'article/a-123' | 'article-a123'
+  if (clean.indexOf('article/') === 0) {
+    return { view: 'article', id: decodeURIComponent(clean.slice('article/'.length)) };
+  }
+  if (clean.indexOf('article-') === 0) {
+    return { view: 'article', id: decodeURIComponent(clean.slice('article-'.length)) };
+  }
+  if (clean === 'dashboard' || clean === 'tagcloud' || clean === 'archive') {
+    return { view: clean };
+  }
+  return { view: 'home' };
+}
+
+function setActiveNav(tab) {
   var tabs = document.querySelectorAll('.nav-tab');
   for (var i = 0; i < tabs.length; i++) {
-    tabs[i].classList.toggle('active', tabs[i].dataset.tab === tab);
+    tabs[i].classList.toggle('active', tab ? tabs[i].dataset.tab === tab : false);
   }
+}
 
-  if (tab === 'home') { renderHome(); return; }
-  if (tab === 'dashboard') { renderDashboard(); return; }
-  if (tab === 'tagcloud') { renderTagCloud(); return; }
-  if (tab === 'archive') { renderArchive(); return; }
+function route() {
+  var r = parseHash();
+  if (r.view === 'article') {
+    var a = state.articles.find(function (x) { return x.id === r.id; });
+    if (a) {
+      setActiveNav(null);
+      renderDetail(a);
+      return;
+    }
+    // 文章不存在（如 id 拼错）→ 回首页
+  }
+  if (r.view === 'dashboard') { setActiveNav('dashboard'); renderDashboard(); return; }
+  if (r.view === 'tagcloud') { setActiveNav('tagcloud'); renderTagCloud(); return; }
+  if (r.view === 'archive') { setActiveNav('archive'); renderArchive(); return; }
+  setActiveNav('home');
+  renderHome();
+}
+
+// --- 全文检索索引加载（首次搜索或首屏预加载时触发） ---
+function ensureSearchIndex(cb) {
+  if (searchIndex) { if (cb) cb(); return; }
+  if (searchIndexLoading) return;
+  searchIndexLoading = true;
+  fetch('search-index.json?' + Date.now())
+    .then(function (r) { if (!r.ok) throw new Error('no index'); return r.json(); })
+    .then(function (d) {
+      searchIndex = d.items || d || [];
+      searchIndexMap = {};
+      for (var i = 0; i < searchIndex.length; i++) searchIndexMap[searchIndex[i].id] = searchIndex[i];
+      searchIndexLoading = false;
+      if (cb) cb();
+    })
+    .catch(function () {
+      searchIndex = [];
+      searchIndexMap = {};
+      searchIndexLoading = false;
+      if (cb) cb();
+    });
 }
 
 // --- 统计看板 ---
@@ -1160,7 +1237,7 @@ function renderArchive() {
     (function (el) {
       el.addEventListener('click', function () {
         var a = state.articles.find(function (x) { return x.id === el.dataset.id; });
-        if (a) renderDetail(a);
+        if (a) navigateTo('#/article/' + encodeURIComponent(a.id));
       });
     })(items[ai]);
   }
@@ -1204,7 +1281,7 @@ function bindListCardClicks() {
         var a = state.articles.find(function (x) { return x.id === item.dataset.id; });
         if (a) {
           sessionStorage.setItem('home-scroll', window.scrollY);
-          renderDetail(a);
+          navigateTo('#/article/' + encodeURIComponent(a.id));
         }
       });
     })(items[i]);
@@ -1488,7 +1565,6 @@ function searchNav(dir) {
 function renderDetail(article) {
   state.currentView = 'detail';
   state.currentArticle = article;
-  window.history.pushState({ view: 'detail', id: article.id }, '', '#article-' + article.id);
 
   // 受保护文章 - 密码验证
   if (article.protected) {
@@ -1728,8 +1804,7 @@ function renderDetail(article) {
     pn.addEventListener('click', function (e) {
       var btn = e.target.closest('.prev-next-btn');
       if (!btn) return;
-      var a = state.articles.find(function (x) { return x.id === btn.dataset.id; });
-      if (a) renderDetail(a);
+      navigateTo('#/article/' + encodeURIComponent(btn.dataset.id));
     });
   }
 
@@ -1804,7 +1879,7 @@ var searchTimer;
 function handleSearch(e) {
   state.searchQuery = e.target.value;
   clearTimeout(searchTimer);
-  searchTimer = setTimeout(function () { resetPagination(); renderHome(); }, 300);
+  searchTimer = setTimeout(function () { resetPagination(); ensureSearchIndex(function () { renderHome(); }); }, 300);
 }
 
 // --- 键盘快捷键 ---
@@ -1819,20 +1894,18 @@ function initKeyboardShortcuts() {
     }
 
     if (state.currentView === 'detail') {
-      if (e.key === 'Escape') { renderHome(); e.preventDefault(); }
+      if (e.key === 'Escape') { navigateTo('#/home'); e.preventDefault(); }
       if (e.key === 'ArrowLeft' && !e.ctrlKey && !e.metaKey) {
         var prevBtn = document.querySelector('.prev-next-btn:not(.next)');
         if (prevBtn && prevBtn.dataset.id) {
-          var a = state.articles.find(function (x) { return x.id === prevBtn.dataset.id; });
-          if (a) renderDetail(a);
+          navigateTo('#/article/' + encodeURIComponent(prevBtn.dataset.id));
         }
         e.preventDefault();
       }
       if (e.key === 'ArrowRight' && !e.ctrlKey && !e.metaKey) {
         var nextBtn = document.querySelector('.prev-next-btn.next');
         if (nextBtn && nextBtn.dataset.id) {
-          var a = state.articles.find(function (x) { return x.id === nextBtn.dataset.id; });
-          if (a) renderDetail(a);
+          navigateTo('#/article/' + encodeURIComponent(nextBtn.dataset.id));
         }
         e.preventDefault();
       }
@@ -1872,6 +1945,32 @@ function exportBackup() {
   showToast('备份已导出');
 }
 
+// --- 导出合并主库（把本地新增 + 编辑 override 合并为标准 data.json） ---
+function exportMergedData() {
+  // state.articles 已是「主库 + override + 本地新增」的最终态，去掉运行时字段即可回流主库
+  var SCHEMA_KEYS = ['id', 'title', 'author', 'url', 'summary', 'category', 'tags',
+    'source', 'sourceUrl', 'dateAdded', 'readTime', 'readTimeMinutes', 'status',
+    'rating', 'aiReview', 'relatedLinks', 'notes', 'starred', 'updatedAt', 'protected'];
+  var merged = state.articles.map(function (a) {
+    var o = {};
+    SCHEMA_KEYS.forEach(function (k) { if (a[k] !== undefined) o[k] = a[k]; });
+    return o;
+  });
+  // 按 dateAdded 倒序，保持与现有 data.json 风格一致
+  merged.sort(function (x, y) { return (x.dateAdded || '') < (y.dateAdded || '') ? 1 : -1; });
+
+  var blob = new Blob([JSON.stringify({ articles: merged }, null, 2)], { type: 'application/json' });
+  var url = URL.createObjectURL(blob);
+  var aEl = document.createElement('a');
+  aEl.href = url;
+  aEl.download = 'data.merged.json';
+  document.body.appendChild(aEl);
+  aEl.click();
+  document.body.removeChild(aEl);
+  URL.revokeObjectURL(url);
+  showToast('已导出合并主库（' + merged.length + ' 篇）→ 替换 data.json 并提交即可回流');
+}
+
 // --- 导入备份 ---
 function importBackup(event) {
   var file = event.target.files[0];
@@ -1894,14 +1993,8 @@ function importBackup(event) {
   event.target.value = '';
 }
 
-// --- 导航 ---
-window.addEventListener('popstate', function (e) {
-  if (e.state && e.state.view === 'detail' && e.state.id) {
-    var a = state.articles.find(function (x) { return x.id === e.state.id; });
-    if (a) { renderDetail(a); return; }
-  }
-  switchTab('home');
-});
+// --- 导航（hash 变化即路由，支持浏览器前进/后退/刷新/直达链接） ---
+window.addEventListener('hashchange', route);
 
 // --- 滚动 ---
 (function () {

@@ -5,7 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>📖 我的收藏库</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='80'>📖</text></svg>">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-180.png">
+  <meta name="theme-color" content="#2b6cb0">
   <link rel="stylesheet" href="style.css">
+  <script>
+    // 首帧即应用主题，避免暗色用户刷新闪白（FOUC）
+    (function () {
+      try {
+        var t = localStorage.getItem('my-collection-theme');
+        if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body>
 
@@ -15,7 +29,7 @@
       <div class="logo" onclick="switchTab('home')">📖 我的收藏库</div>
       <div class="header-right">
         <div class="search-box">
-          <input type="text" id="searchInput" placeholder="搜索文章…" autocomplete="off">
+          <input type="text" id="searchInput" placeholder="搜索标题/标签/正文…" autocomplete="off">
         </div>
         <button class="btn btn-primary" onclick="showAddArticleModal()">＋ 添加</button>
         <button class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()" title="切换暗色模式">🌙</button>
@@ -43,5 +57,12 @@
   <div class="top-float" id="topFloat" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ TOP</div>
 
   <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('./sw.js').catch(function () {});
+      });
+    }
+  </script>
 </body>
 </html>

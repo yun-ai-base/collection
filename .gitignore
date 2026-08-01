@@ -1,1 +1,5 @@
 *.txt
+.workbuddy/
+_archive/
+.playwright-cli/
+/us_stock_*.md

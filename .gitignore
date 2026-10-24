@@ -2,4 +2,5 @@
 .workbuddy/
 _archive/
 .playwright-cli/
+.playwright-mcp/
 /us_stock_*.md

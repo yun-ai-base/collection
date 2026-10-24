@@ -1,5 +1,5 @@
 // collection PWA service worker
-const CACHE = 'collection-v2';
+const CACHE = 'collection-v3';
 const SHELL = [
   './',
   './index.html',

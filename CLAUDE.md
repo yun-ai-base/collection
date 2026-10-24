@@ -32,6 +32,7 @@
 - 所有动态数据拼 HTML 前必须 `escapeHtml()`（aiReview 是曾经的漏网点，已修复）
 - 所有链接/图片 URL 必须过 `sanitizeUrl()`（只放行 http/https/mailto/tel）
 - Markdown 渲染器支持：图片(懒加载)、[链接](url "title")、加粗、斜体、行内代码、删除线、标题、列表、引用、表格
+- 引用块：相邻的 `>` 行合并为同一个 `<blockquote>`（内部 `<br>` 分隔），样式在 `.detail-content blockquote`（浅色/暗色各一套）。历史坑：早期渲染器输出 blockquote 但 CSS 未定义样式，引用内容会退化成普通段落
 - 新增分类必须同时维护：CATEGORY_STYLES + CATEGORY_STYLES_DARK + build-search-index.js 的 VALID_CATEGORIES
 
 ## 开发约定
@@ -42,6 +43,7 @@
 
 ## 内容备注
 - 美股指南系列 12 篇（a-usstock-01~12）2026-08-02 已入库，作者 zoudaoxingchen，分类「投资/财经」，正文在 articles/，根目录原 us_stock_*.md 为源文件可留可删
+- 2026-10-24 新增 X 长文《万字教程｜小红书从 0 到 1，入门运营详细指南》（id `a-1792727465678`，作者 Jessi Cao @JessiCao_JC，约 1.5 万字，分类「效率/工具」）。X 长文（Article）无法直接抓：x.com 抓取失败，最终用 nitter.space 拿推文正文 + `api.fxtwitter.com/<user>/status/<id>` 拿 article.content.blocks 全文
 - 根目录临时文件已归档至 `_archive/`（article_content_doc.txt / tmp_article.txt / zhihu_content.txt / us_stock_full.txt）
 
 ## 相关记忆

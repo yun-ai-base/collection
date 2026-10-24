@@ -244,11 +244,18 @@ function renderContentWithMD(text) {
       html += '<li>' + renderMarkdown(olMatch[1]) + '</li>';
       continue;
     }
-    // 引用 >
+    // 引用 >（连续的引用行合并为同一个 blockquote，内部用 <br> 分隔）
     var bqMatch = line.match(/^>\s*(.+)/);
     if (bqMatch) {
       if (inList) { html += '</' + listType + '>'; inList = false; listType = null; }
-      html += '<blockquote>' + renderMarkdown(bqMatch[1]) + '</blockquote>';
+      var bqLines = [bqMatch[1]];
+      while (i + 1 < lines.length) {
+        var nextBq = lines[i + 1].trim().match(/^>\s*(.+)/);
+        if (!nextBq) break;
+        bqLines.push(nextBq[1]);
+        i++;
+      }
+      html += '<blockquote>' + bqLines.map(renderMarkdown).join('<br>') + '</blockquote>';
       continue;
     }
     // 表格

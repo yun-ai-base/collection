@@ -498,6 +498,29 @@ body {
   background: #fafafa;
 }
 
+/* 引用块（模板卡 / 示例卡 / 金句） */
+.detail-content blockquote {
+  margin: 12px 0;
+  padding: 10px 16px;
+  background: #fafaf6;
+  border-left: 3px solid #dcdcd2;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  color: #565656;
+  font-size: 0.96em;
+  line-height: 1.75;
+  text-indent: 0;
+}
+
+/* 连续引用行（同一组卡片）收紧间距 */
+.detail-content blockquote + blockquote {
+  margin-top: -4px;
+}
+
+.detail-content blockquote p {
+  margin: 0;
+  text-indent: 0;
+}
+
 /* 阅读区更舒适 */
 .detail-container {
   background: var(--surface);
@@ -1162,6 +1185,12 @@ mark {
 [data-theme="dark"] .detail-content th {
   background: #333;
   color: #d0d0d4;
+}
+
+[data-theme="dark"] .detail-content blockquote {
+  background: #2c2c32;
+  border-left-color: #4c4c55;
+  color: #b6b6bd;
 }
 
 [data-theme="dark"] .detail-content td {
